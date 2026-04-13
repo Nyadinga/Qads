@@ -1,0 +1,53 @@
+openapi: 3.0.3
+info:
+  title: Qads API
+  version: 2.0.0
+  description: |
+    QADS API documentation.
+    This API supports:
+    - User authentication
+    - Advertiser operations
+    - Promoter operations
+    - Campaign management
+    - Wallet and withdrawals
+    - Click tracking
+    - Admin moderation and platform management
+    - Reporting and analytics
+    - Referrals operations
+
+servers:
+  - url: http://localhost:3000
+    description: local development server
+
+tags:
+  - name: Authentication
+    description: Endpoints for user registration, login, password reset, and token management
+  - name: Users
+    description: Endpoints for user profile and account management
+  - name: Campaigns
+    description: Endpoints for campaign creation, update, approval, and lifecycle management
+  - name: Promoter
+    description: Endpoints for promoters to browse campaigns, generate links, and track earnings
+  - name: Wallet
+    description: Endpoints for wallet balance, earnings, and withdrawals
+  - name: Click Tracking
+    description: Endpoints for click recording, validation, and fraud analysis
+  - name: Admin
+    description: Endpoints for platform administration, approvals, fraud review, and moderation
+  - name: Reports
+    description: Endpoints for reporting, analytics, and performance insights
+  - name: Referrals
+    description: Endpoints for managing the referral structure 
+
+paths: 
+  /auth/register:
+    $ref: './paths/auth/register.yaml'
+
+# ADDED THIS SECTION BELOW
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+

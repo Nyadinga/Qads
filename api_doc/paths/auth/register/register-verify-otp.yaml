@@ -1,0 +1,198 @@
+post:
+  tags:
+    - Authentication
+
+  summary: Verify registration OTP
+
+  description: |
+    This endpoint verifies the OTP sent to the user after registration.
+
+    OTP delivery priority:
+    1. WhatsApp OTP is attempted first using the provided phone number.
+    2. If WhatsApp is not available on that number, OTP is sent via email.
+
+    When the OTP is successfully verified, the system will:
+    - mark the user account as verified
+    - change account status from `pending_verification` to `active`
+    - allow the user to proceed to the login page
+
+    This endpoint does NOT authenticate the user and does NOT return an access token.
+
+  operationId: verifyRegistrationOtp
+
+  requestBody:
+    required: true
+
+    content:
+      application/json:
+
+        schema:
+          type: object
+
+          required:
+            - userId
+            - otp
+
+          properties:
+
+            userId:
+              type: string
+              format: uuid
+              description: Unique identifier assigned when the user registered.
+              example: "550e8400-e29b-41d4-a716-446655440000"
+
+            otp:
+              type: string
+              description: One-time password sent to the user for account verification.
+              minLength: 4
+              maxLength: 8
+              example: "482911"
+
+  responses:
+
+    '200':
+
+      description: OTP verified successfully.
+
+      content:
+
+        application/json:
+
+          schema:
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: true
+
+              message:
+                type: string
+                example: Account verified successfully.
+
+              data:
+                type: object
+
+                properties:
+
+                  userId:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+
+                  accountStatus:
+                    type: string
+                    example: active
+
+                  verified:
+                    type: boolean
+                    example: true
+
+                  nextStep:
+                    type: string
+                    example: login
+
+
+    '400':
+
+      description: Invalid request payload.
+
+      content:
+
+        application/json:
+
+          schema:
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InvalidRequest
+
+              message:
+                type: string
+                example: The request payload is missing required fields or is malformed.
+
+
+    '422':
+
+      description: Invalid OTP provided.
+
+      content:
+
+        application/json:
+
+          schema:
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InvalidOtp
+
+              message:
+                type: string
+                example: The OTP provided is incorrect.
+
+
+    '410':
+
+      description: OTP expired.
+
+      content:
+
+        application/json:
+
+          schema:
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: OtpExpired
+
+              message:
+                type: string
+                example: The OTP has expired. Please request a new one.
+
+
+    '500':
+
+      description: Internal server error.
+
+      content:
+
+        application/json:
+
+          schema:
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InternalServerError
+
+              message:
+                type: string
+                example: Something went wrong while verifying the OTP.

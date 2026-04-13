@@ -1,0 +1,171 @@
+post:
+  tags:
+    - Authentication
+
+  summary: Resend registration OTP
+
+  description: |
+    This endpoint resends a new OTP for registration verification.
+
+    It is used when a user has successfully registered but did not receive
+    the original OTP or the OTP has expired.
+
+    OTP delivery priority:
+    1. WhatsApp is used as the primary channel
+    2. Email is used as a fallback if WhatsApp is unavailable
+
+    To prevent abuse, OTP resend requests are rate limited.
+
+  operationId: resendRegistrationOtp
+
+  requestBody:
+    required: true
+
+    content:
+      application/json:
+
+        schema:
+          type: object
+
+          required:
+            - userId
+
+          properties:
+
+            userId:
+              type: string
+              format: uuid
+              description: Unique identifier assigned to the user during registration.
+              example: "550e8400-e29b-41d4-a716-446655440000"
+
+
+  responses:
+
+    '200':
+
+      description: Registration OTP resent successfully.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: true
+
+              message:
+                type: string
+                example: A new registration OTP has been sent successfully.
+
+              data:
+
+                type: object
+
+                properties:
+
+                  userId:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+
+                  verificationChannel:
+                    type: string
+                    enum:
+                      - whatsapp
+                      - email
+                    example: whatsapp
+
+                  nextStep:
+                    type: string
+                    example: verify_registration_otp
+
+
+    '400':
+
+      description: Invalid request payload.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InvalidRequest
+
+              message:
+                type: string
+                example: The request payload is missing the required user ID.
+
+
+    '429':
+
+      description: Too many OTP requests.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: TooManyRequests
+
+              message:
+                type: string
+                example: Too many OTP requests. Please wait before trying again.
+
+              retryAfterSeconds:
+                type: integer
+                example: 60
+
+
+    '500':
+
+      description: Internal server error.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InternalServerError
+
+              message:
+                type: string
+                example: Something went wrong while resending the registration OTP.

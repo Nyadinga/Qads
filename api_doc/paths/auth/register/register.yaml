@@ -1,0 +1,189 @@
+post:
+  tags:
+    - Authentication
+  summary: Create a new user account
+  description: |
+    This endpoint handles the initial onboarding of QADS users.
+
+    A user may register as:
+    - advertiser
+    - promoter
+    - or both roles at the same time
+
+    Upon successful registration, the system will:
+    - Create a unique User ID
+    - Initialize a secure wallet for the user
+    - Assign the selected roles
+    - Set the account status to `pending_verification`
+    - Generate a registration OTP
+    - Send the OTP through WhatsApp first
+    - Fall back to email if WhatsApp is not available for the provided number
+
+    After successful registration, the user must verify the OTP before proceeding to login.
+  operationId: registerUser
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          required:
+            - firstName
+            - lastName
+            - phoneNumber
+            - email
+            - password
+            - confirmPassword
+            - roles
+          properties:
+            firstName:
+              type: string
+              example: Fabien
+            lastName:
+              type: string
+              example: Awono
+            phoneNumber:
+              type: string
+              example: "+237600000000"
+            email:
+              type: string
+              format: email
+              example: fabien@example.com
+            password:
+              type: string
+              format: password
+              minLength: 8
+              example: StrongPass123!
+            confirmPassword:
+              type: string
+              format: password
+              description: Must match the password field.
+              example: StrongPass123!
+            roles:
+              type: array
+              description: List of roles assigned to the user.
+              minItems: 1
+              items:
+                type: string
+                enum:
+                  - advertiser
+                  - promoter
+              example:
+                - advertiser
+                - promoter
+
+  responses:
+    '201':
+      description: User registered successfully. OTP sent for account verification.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              message:
+                type: string
+                example: Registration successful. OTP sent for account verification.
+              data:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    format: uuid
+                    example: 550e8400-e29b-41d4-a716-446655440000
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - advertiser
+                        - promoter
+                    example:
+                      - advertiser
+                      - promoter
+                  accountStatus:
+                    type: string
+                    example: pending_verification
+                  verificationChannel:
+                    type: string
+                    enum:
+                      - whatsapp
+                      - email
+                    example: whatsapp
+                  nextStep:
+                    type: string
+                    example: verify_registration_otp
+
+    '400':
+      description: Bad request or validation error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: PasswordMismatch
+              message:
+                type: string
+                example: Password and confirm password do not match.
+
+    '409':
+      description: Conflict. Email or phone number already exists.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: UserAlreadyExists
+              message:
+                type: string
+                example: An account with this email or phone number already exists.
+  
+    '429':
+      description: Too many requests.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: TooManyRequests
+              message:
+                type: string
+                example: Too many requests. Please wait before trying again.
+              retryAfterSeconds:
+                type: integer
+                example: 60            
+
+    '500':
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: false
+              error:
+                type: string
+                example: InternalServerError
+              message:
+                type: string
+                example: Something went wrong while creating the account.

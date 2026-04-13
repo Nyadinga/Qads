@@ -1,0 +1,175 @@
+post:
+  tags:
+    - Authentication
+
+  summary: Resend login OTP
+
+  description: |
+    This endpoint resends a new OTP for login verification.
+
+    It is used when a user has successfully submitted valid login credentials
+    but did not receive the OTP or the OTP has expired.
+
+    OTP delivery priority:
+    1. WhatsApp is used as the primary channel
+    2. Email is used as a fallback if WhatsApp is unavailable
+
+    To prevent abuse, OTP resend requests are rate limited.
+
+  operationId: resendLoginOtp
+
+
+  requestBody:
+
+    required: true
+
+    content:
+
+      application/json:
+
+        schema:
+
+          type: object
+
+          required:
+            - loginSessionId
+
+          properties:
+
+            loginSessionId:
+              type: string
+              format: uuid
+              description: Temporary login session ID returned by the login endpoint.
+              example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
+
+
+  responses:
+
+    '200':
+
+      description: Login OTP resent successfully.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: true
+
+              message:
+                type: string
+                example: A new login OTP has been sent successfully.
+
+              data:
+
+                type: object
+
+                properties:
+
+                  loginSessionId:
+                    type: string
+                    format: uuid
+                    example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
+
+                  verificationChannel:
+                    type: string
+                    enum:
+                      - whatsapp
+                      - email
+                    example: whatsapp
+
+                  nextStep:
+                    type: string
+                    example: verify_login_otp
+
+
+    '400':
+
+      description: Invalid request payload.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InvalidRequest
+
+              message:
+                type: string
+                example: The request payload is missing the required login session ID.
+
+
+    '429':
+
+      description: Too many OTP requests.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: TooManyRequests
+
+              message:
+                type: string
+                example: Too many OTP requests. Please wait before trying again.
+
+              retryAfterSeconds:
+                type: integer
+                example: 60
+
+
+    '500':
+
+      description: Internal server error.
+
+      content:
+
+        application/json:
+
+          schema:
+
+            type: object
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                example: InternalServerError
+
+              message:
+                type: string
+                example: Something went wrong while resending the login OTP.

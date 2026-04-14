@@ -8,11 +8,11 @@ post:
     This endpoint verifies the OTP sent after a successful login credential check.
 
     After the user submits a valid identifier and password through the login endpoint,
-    the system creates a temporary login session and sends an OTP for second-step verification.
+    the system creates a temporary verification session and sends an OTP for second-step verification.
 
     Upon successful OTP verification, the system will:
-    - validate the login session
-    - mark the login verification as completed
+    - validate the verification session
+    - mark the OTP session as verified
     - create an authenticated session
     - return an access token
     - allow the user to access the dashboard
@@ -30,13 +30,14 @@ post:
         schema:
           type: object
           required:
-            - loginSessionId
+            - verificationSessionId
             - otp
           properties:
-            loginSessionId:
+
+            verificationSessionId:
               type: string
               format: uuid
-              description: Temporary login session ID returned by the login endpoint.
+              description: Verification session ID returned by the login endpoint.
               example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
 
             otp:
@@ -47,13 +48,22 @@ post:
               example: "593201"
 
   responses:
+
     '200':
       description: Login OTP verified successfully.
       content:
         application/json:
           schema:
+
             type: object
+
+            required:
+              - success
+              - message
+              - data
+
             properties:
+
               success:
                 type: boolean
                 example: true
@@ -63,8 +73,18 @@ post:
                 example: Login verification successful.
 
               data:
+
                 type: object
+
+                required:
+                  - accessToken
+                  - tokenType
+                  - expiresIn
+                  - user
+                  - nextStep
+
                 properties:
+
                   accessToken:
                     type: string
                     description: JWT access token used for authenticated requests.
@@ -72,7 +92,9 @@ post:
 
                   tokenType:
                     type: string
-                    example: "Bearer"
+                    enum:
+                      - Bearer
+                    example: Bearer
 
                   expiresIn:
                     type: integer
@@ -80,25 +102,36 @@ post:
                     example: 3600
 
                   user:
+
                     type: object
+
+                    required:
+                      - id
+                      - firstName
+                      - lastName
+                      - email
+                      - phoneNumber
+                      - roles
+                      - accountStatus
+
                     properties:
+
                       id:
-                        type: string
-                        format: uuid
-                        example: "550e8400-e29b-41d4-a716-446655440000"
+                        type: integer
+                        example: 125
 
                       firstName:
                         type: string
-                        example: "Fabien"
+                        example: Fabien
 
                       lastName:
                         type: string
-                        example: "Awono"
+                        example: Awono
 
                       email:
                         type: string
                         format: email
-                        example: "fabien@example.com"
+                        example: fabien@example.com
 
                       phoneNumber:
                         type: string
@@ -117,82 +150,126 @@ post:
 
                       accountStatus:
                         type: string
-                        example: "active"
+                        enum:
+                          - active
+                        example: active
 
                   nextStep:
                     type: string
-                    example: "dashboard"
+                    enum:
+                      - dashboard
+                    example: dashboard
 
     '400':
       description: Invalid request payload.
       content:
         application/json:
           schema:
+
             type: object
+
+            required:
+              - success
+              - error
+              - message
+
             properties:
+
               success:
                 type: boolean
                 example: false
 
               error:
                 type: string
+                enum:
+                  - InvalidRequest
                 example: InvalidRequest
 
               message:
                 type: string
                 example: The request payload is missing required fields or is malformed.
 
-    '422':
-      description: Invalid OTP provided.
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              success:
-                type: boolean
-                example: false
-
-              error:
-                type: string
-                example: InvalidOtp
-
-              message:
-                type: string
-                example: The OTP provided is incorrect.
-
     '410':
       description: OTP expired.
       content:
         application/json:
           schema:
+
             type: object
+
+            required:
+              - success
+              - error
+              - message
+
             properties:
+
               success:
                 type: boolean
                 example: false
 
               error:
                 type: string
+                enum:
+                  - OtpExpired
                 example: OtpExpired
 
               message:
                 type: string
                 example: The OTP has expired. Please request a new one.
 
-    '500':
-      description: Internal server error.
+    '422':
+      description: Invalid OTP provided.
       content:
         application/json:
           schema:
+
             type: object
+
+            required:
+              - success
+              - error
+              - message
+
             properties:
+
               success:
                 type: boolean
                 example: false
 
               error:
                 type: string
+                enum:
+                  - InvalidOtp
+                example: InvalidOtp
+
+              message:
+                type: string
+                example: The OTP provided is incorrect.
+
+    '500':
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+
+            type: object
+
+            required:
+              - success
+              - error
+              - message
+
+            properties:
+
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                enum:
+                  - InternalServerError
                 example: InternalServerError
 
               message:

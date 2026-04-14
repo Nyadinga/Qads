@@ -11,6 +11,10 @@ post:
     - email + password
     - phone number + password
 
+    Identifier handling rules:
+    - if the identifier contains `@`, it is treated as an email address
+    - otherwise, it is treated as a phone number
+
     If credentials are correct, the system will:
     - create a temporary login verification session
     - generate a login OTP
@@ -23,219 +27,196 @@ post:
 
   operationId: loginUser
 
-
   requestBody:
-
     required: true
-
     content:
-
       application/json:
-
         schema:
-
           type: object
-
           required:
             - identifier
             - password
-
           properties:
-
             identifier:
               type: string
-              description: Email address or phone number of the user.
-              example: fabien@example.com
+              description: |
+                Email address or phone number of the user.
 
+                Rules:
+                - If the value contains `@`, it is treated as an email address.
+                - Otherwise, it is treated as a phone number.
+              example: fabien@example.com
             password:
               type: string
               format: password
               example: StrongPass123!
 
-
   responses:
-
-
     '200':
-
       description: Credentials validated successfully. OTP sent for login verification.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - message
+              - data
             properties:
-
               success:
                 type: boolean
                 example: true
-
               message:
                 type: string
                 example: Password verified. OTP sent for login verification.
-
               data:
-
                 type: object
-
+                required:
+                  - loginSessionId
+                  - verificationChannel
+                  - loginStatus
+                  - nextStep
+                  - otpExpiresIn
                 properties:
-
                   loginSessionId:
                     type: string
                     format: uuid
                     description: Temporary login session identifier used for OTP verification.
                     example: 9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55
-
                   verificationChannel:
                     type: string
                     enum:
                       - whatsapp
                       - email
                     example: whatsapp
-
                   loginStatus:
                     type: string
+                    enum:
+                      - otp_pending
                     example: otp_pending
-
                   nextStep:
                     type: string
+                    enum:
+                      - verify_login_otp
                     example: verify_login_otp
-
+                  otpExpiresIn:
+                    type: integer
+                    description: OTP validity duration in seconds.
+                    example: 300
 
     '400':
-
       description: Invalid request payload.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
             properties:
-
               success:
                 type: boolean
                 example: false
-
               error:
                 type: string
                 example: InvalidRequest
-
               message:
                 type: string
                 example: Identifier and password are required.
-    
-    '429':
-
-      description: Too many requests.
-
-      content:
-
-        application/json:
-
-          schema:
-            type: object
-            properties:
-
-          success:
-            type: boolean
-            example: false
-
-          error:
-            type: string
-            example: TooManyRequests
-
-          message:
-            type: string
-            example: Too many requests. Please wait before trying again.
-            
-          retryAfterSeconds:
-            type: integer
-            example: 60
 
     '401':
-
       description: Invalid credentials.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
             properties:
-
               success:
                 type: boolean
                 example: false
-
               error:
                 type: string
                 example: InvalidCredentials
-
               message:
                 type: string
-                example: The email/phone or password provided is incorrect.
-
+                example: The email/phone number or password provided is incorrect.
 
     '403':
-
       description: Account not allowed to login.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
             properties:
-
               success:
                 type: boolean
                 example: false
-
               error:
                 type: string
-                example: AccountNotActive
-
+                enum:
+                  - AccountNotVerified
+                  - AccountSuspended
+                example: AccountNotVerified
               message:
                 type: string
-                example: Account is not active. Please complete registration verification first.
+                description: |
+                  Human-readable explanation of why the account cannot log in.
+                  Example values depend on the error code:
+                  - AccountNotVerified
+                  - AccountSuspended
+                example: Account is not verified. Please complete account verification first.
 
-
-    '500':
-
-      description: Internal server error.
-
+    '429':
+      description: Too many requests.
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
+              - retryAfterSeconds
             properties:
-
               success:
                 type: boolean
                 example: false
+              error:
+                type: string
+                example: TooManyRequests
+              message:
+                type: string
+                example: Too many requests. Please wait before trying again.
+              retryAfterSeconds:
+                type: integer
+                example: 60
 
+    '500':
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - success
+              - error
+              - message
+            properties:
+              success:
+                type: boolean
+                example: false
               error:
                 type: string
                 example: InternalServerError
-
               message:
                 type: string
                 example: Something went wrong while processing the login request.

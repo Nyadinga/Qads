@@ -18,47 +18,33 @@ post:
 
   operationId: resendLoginOtp
 
-
   requestBody:
-
     required: true
-
     content:
-
       application/json:
-
         schema:
-
           type: object
-
           required:
-            - loginSessionId
-
+            - verificationSessionId
           properties:
-
-            loginSessionId:
+            verificationSessionId:
               type: string
               format: uuid
-              description: Temporary login session ID returned by the login endpoint.
+              description: Verification session ID returned by the login endpoint.
               example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
 
-
   responses:
-
     '200':
-
       description: Login OTP resent successfully.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - message
+              - data
             properties:
-
               success:
                 type: boolean
                 example: true
@@ -68,12 +54,14 @@ post:
                 example: A new login OTP has been sent successfully.
 
               data:
-
                 type: object
-
+                required:
+                  - verificationSessionId
+                  - verificationChannel
+                  - otpExpiresIn
+                  - nextStep
                 properties:
-
-                  loginSessionId:
+                  verificationSessionId:
                     type: string
                     format: uuid
                     example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
@@ -85,58 +73,87 @@ post:
                       - email
                     example: whatsapp
 
+                  otpExpiresIn:
+                    type: integer
+                    description: OTP validity duration in seconds.
+                    example: 300
+
                   nextStep:
                     type: string
+                    enum:
+                      - verify_login_otp
                     example: verify_login_otp
 
-
     '400':
-
       description: Invalid request payload.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
             properties:
-
               success:
                 type: boolean
                 example: false
 
               error:
                 type: string
+                enum:
+                  - InvalidRequest
                 example: InvalidRequest
 
               message:
                 type: string
-                example: The request payload is missing the required login session ID.
+                example: The request payload is missing the required verification session ID.
 
-
-    '429':
-
-      description: Too many OTP requests.
-
+    '404':
+      description: Verification session not found.
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
             properties:
-
               success:
                 type: boolean
                 example: false
 
               error:
                 type: string
+                enum:
+                  - VerificationSessionNotFound
+                example: VerificationSessionNotFound
+
+              message:
+                type: string
+                example: The verification session could not be found.
+
+    '429':
+      description: Too many OTP requests.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - success
+              - error
+              - message
+              - retryAfterSeconds
+            properties:
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                enum:
+                  - TooManyRequests
                 example: TooManyRequests
 
               message:
@@ -147,27 +164,25 @@ post:
                 type: integer
                 example: 60
 
-
     '500':
-
       description: Internal server error.
-
       content:
-
         application/json:
-
           schema:
-
             type: object
-
+            required:
+              - success
+              - error
+              - message
             properties:
-
               success:
                 type: boolean
                 example: false
 
               error:
                 type: string
+                enum:
+                  - InternalServerError
                 example: InternalServerError
 
               message:

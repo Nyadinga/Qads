@@ -1,0 +1,109 @@
+post:
+  tags:
+    - Authentication
+
+  summary: Logout user
+
+  description: |
+    This endpoint logs out the currently authenticated user.
+
+    The client must send a valid access token in the Authorization header.
+
+    When logout is successful, the system will:
+    - invalidate the authenticated session or token
+    - revoke refresh token if applicable
+    - prevent further use of the current authentication context
+
+    This endpoint requires authentication.
+
+  operationId: logoutUser
+
+  security:
+    - BearerAuth: []
+
+  responses:
+    '200':
+      description: User logged out successfully.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - success
+              - message
+              - data
+            properties:
+              success:
+                type: boolean
+                example: true
+
+              message:
+                type: string
+                example: Logout successful.
+
+              data:
+                type: object
+                required:
+                  - loggedOut
+                  - nextStep
+                properties:
+                  loggedOut:
+                    type: boolean
+                    example: true
+
+                  nextStep:
+                    type: string
+                    enum:
+                      - login
+                    example: login
+
+    '401':
+      description: Authentication is required or the token is invalid.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - success
+              - error
+              - message
+            properties:
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                enum:
+                  - Unauthorized
+                  - InvalidToken
+                example: Unauthorized
+
+              message:
+                type: string
+                example: A valid access token is required to logout.
+
+    '500':
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - success
+              - error
+              - message
+            properties:
+              success:
+                type: boolean
+                example: false
+
+              error:
+                type: string
+                enum:
+                  - InternalServerError
+                example: InternalServerError
+
+              message:
+                type: string
+                example: Something went wrong while logging out.

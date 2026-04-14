@@ -2,21 +2,25 @@ post:
   tags:
     - Authentication
 
-  summary: Resend registration OTP
+  summary: Refresh access token
 
   description: |
-    This endpoint resends a new OTP for registration verification.
+    This endpoint issues a new access token using a valid refresh token.
 
-    It is used when a user has successfully registered but did not receive
-    the original OTP or the OTP has expired.
+    It is used when the current access token has expired or is close to expiring,
+    allowing the user to continue using the platform without logging in again.
 
-    OTP delivery priority:
-    1. WhatsApp is used as the primary channel
-    2. Email is used as a fallback if WhatsApp is unavailable
+    When the refresh token is valid, the system will:
+    - validate the refresh token
+    - confirm that the related session is still active
+    - issue a new access token
+    - optionally rotate and return a new refresh token
+    - preserve the user's authenticated session within the configured session window
 
-    To prevent abuse, OTP resend requests are rate limited.
+    This endpoint does NOT require an access token.
+    It depends on a valid refresh token.
 
-  operationId: resendRegistrationOtp
+  operationId: refreshAccessToken
 
   requestBody:
     required: true
@@ -25,17 +29,16 @@ post:
         schema:
           type: object
           required:
-            - verificationSessionId
+            - refreshToken
           properties:
-            verificationSessionId:
+            refreshToken:
               type: string
-              format: uuid
-              description: Verification session ID returned by the registration endpoint.
-              example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
+              description: Valid refresh token issued during login verification.
+              example: "def50200ab34c9f8d1e7f6c2a8b9c0d1234567890abcdef"
 
   responses:
     '200':
-      description: Registration OTP resent successfully.
+      description: Access token refreshed successfully.
       content:
         application/json:
           schema:
@@ -51,38 +54,36 @@ post:
 
               message:
                 type: string
-                example: A new registration OTP has been sent successfully.
+                example: Access token refreshed successfully.
 
               data:
                 type: object
                 required:
-                  - verificationSessionId
-                  - verificationChannel
-                  - otpExpiresIn
-                  - nextStep
+                  - accessToken
+                  - refreshToken
+                  - tokenType
+                  - expiresIn
                 properties:
-                  verificationSessionId:
+                  accessToken:
                     type: string
-                    format: uuid
-                    example: "9c8a7f60-8a4c-4c7c-9a1d-2c4f5a1b7c55"
+                    description: Newly issued JWT access token.
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.newAccessTokenPayload"
 
-                  verificationChannel:
+                  refreshToken:
+                    type: string
+                    description: Refresh token to be used for subsequent refresh operations. This may be rotated.
+                    example: "def50200f98a7e6b5c4d3a2b10987654321fedcba0987654321"
+
+                  tokenType:
                     type: string
                     enum:
-                      - whatsapp
-                      - email
-                    example: whatsapp
+                      - Bearer
+                    example: Bearer
 
-                  otpExpiresIn:
+                  expiresIn:
                     type: integer
-                    description: OTP validity duration in seconds.
-                    example: 300
-
-                  nextStep:
-                    type: string
-                    enum:
-                      - verify_registration_otp
-                    example: verify_registration_otp
+                    description: Access token lifetime in seconds.
+                    example: 3600
 
     '400':
       description: Invalid request payload.
@@ -107,10 +108,10 @@ post:
 
               message:
                 type: string
-                example: The request payload is missing the required verification session ID.
+                example: The request payload is missing the required refresh token.
 
-    '404':
-      description: Verification session not found.
+    '401':
+      description: Refresh token is invalid, expired, revoked, or does not belong to an active session.
       content:
         application/json:
           schema:
@@ -127,15 +128,18 @@ post:
               error:
                 type: string
                 enum:
-                  - VerificationSessionNotFound
-                example: VerificationSessionNotFound
+                  - InvalidRefreshToken
+                  - ExpiredRefreshToken
+                  - RevokedRefreshToken
+                  - SessionNotActive
+                example: InvalidRefreshToken
 
               message:
                 type: string
-                example: The verification session could not be found.
+                example: The refresh token is invalid or no longer active.
 
     '429':
-      description: Too many OTP requests.
+      description: Too many refresh attempts.
       content:
         application/json:
           schema:
@@ -158,7 +162,7 @@ post:
 
               message:
                 type: string
-                example: Too many OTP requests. Please wait before trying again.
+                example: Too many token refresh attempts. Please wait before trying again.
 
               retryAfterSeconds:
                 type: integer
@@ -187,4 +191,4 @@ post:
 
               message:
                 type: string
-                example: Something went wrong while resending the registration OTP.
+                example: Something went wrong while refreshing the access token.

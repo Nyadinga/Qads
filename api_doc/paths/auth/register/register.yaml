@@ -1,7 +1,9 @@
 post:
   tags:
     - Authentication
+
   summary: Create a new user account
+
   description: |
     This endpoint handles the initial onboarding of QADS users.
 
@@ -11,15 +13,16 @@ post:
     - or both roles at the same time
 
     Upon successful registration, the system will:
-    - Create a unique User ID
-    - Initialize a secure wallet for the user
-    - Assign the selected roles
-    - Set the account status to `pending_verification`
-    - Generate a registration OTP
-    - Send the OTP through WhatsApp first
-    - Fall back to email if WhatsApp is not available for the provided number
+    - create a unique user record
+    - initialize the required wallet(s) for the user
+    - assign the selected roles
+    - set the account status to `pending_verification`
+    - generate a registration OTP
+    - send the OTP through WhatsApp first
+    - fall back to email if WhatsApp is not available for the provided number
 
     After successful registration, the user must verify the OTP before proceeding to login.
+
   operationId: registerUser
 
   requestBody:
@@ -39,31 +42,41 @@ post:
           properties:
             firstName:
               type: string
+              minLength: 1
               example: Fabien
+
             lastName:
               type: string
+              minLength: 1
               example: Awono
+
             phoneNumber:
               type: string
+              description: User phone number in international format.
               example: "+237600000000"
+
             email:
               type: string
               format: email
               example: fabien@example.com
+
             password:
               type: string
               format: password
               minLength: 8
               example: StrongPass123!
+
             confirmPassword:
               type: string
               format: password
-              description: Must match the password field.
+              description: Must exactly match the password field.
               example: StrongPass123!
+
             roles:
               type: array
               description: List of roles assigned to the user.
               minItems: 1
+              uniqueItems: true
               items:
                 type: string
                 enum:
@@ -80,20 +93,34 @@ post:
         application/json:
           schema:
             type: object
+            required:
+              - success
+              - message
+              - data
             properties:
               success:
                 type: boolean
                 example: true
+
               message:
                 type: string
                 example: Registration successful. OTP sent for account verification.
+
               data:
                 type: object
+                required:
+                  - userId
+                  - roles
+                  - accountStatus
+                  - verificationChannel
+                  - nextStep
+                  - otpExpiresIn
                 properties:
                   userId:
-                    type: string
-                    format: uuid
-                    example: 550e8400-e29b-41d4-a716-446655440000
+                    type: integer
+                    description: Auto-increment database identifier of the newly created user.
+                    example: 125
+
                   roles:
                     type: array
                     items:
@@ -104,18 +131,30 @@ post:
                     example:
                       - advertiser
                       - promoter
+
                   accountStatus:
                     type: string
+                    enum:
+                      - pending_verification
                     example: pending_verification
+
                   verificationChannel:
                     type: string
                     enum:
                       - whatsapp
                       - email
                     example: whatsapp
+
                   nextStep:
                     type: string
+                    enum:
+                      - verify_registration_otp
                     example: verify_registration_otp
+
+                  otpExpiresIn:
+                    type: integer
+                    description: OTP validity duration in seconds.
+                    example: 300
 
     '400':
       description: Bad request or validation error.
@@ -123,13 +162,25 @@ post:
         application/json:
           schema:
             type: object
+            required:
+              - success
+              - error
+              - message
             properties:
               success:
                 type: boolean
                 example: false
+
               error:
                 type: string
+                enum:
+                  - InvalidRequest
+                  - PasswordMismatch
+                  - InvalidEmailFormat
+                  - InvalidPhoneNumber
+                  - InvalidRoleSelection
                 example: PasswordMismatch
+
               message:
                 type: string
                 example: Password and confirm password do not match.
@@ -140,36 +191,52 @@ post:
         application/json:
           schema:
             type: object
+            required:
+              - success
+              - error
+              - message
             properties:
               success:
                 type: boolean
                 example: false
+
               error:
                 type: string
+                enum:
+                  - UserAlreadyExists
                 example: UserAlreadyExists
+
               message:
                 type: string
                 example: An account with this email or phone number already exists.
-  
+
     '429':
       description: Too many requests.
       content:
         application/json:
           schema:
             type: object
+            required:
+              - success
+              - error
+              - message
+              - retryAfterSeconds
             properties:
               success:
                 type: boolean
                 example: false
+
               error:
                 type: string
                 example: TooManyRequests
+
               message:
                 type: string
                 example: Too many requests. Please wait before trying again.
+
               retryAfterSeconds:
                 type: integer
-                example: 60            
+                example: 60
 
     '500':
       description: Internal server error.
@@ -177,13 +244,19 @@ post:
         application/json:
           schema:
             type: object
+            required:
+              - success
+              - error
+              - message
             properties:
               success:
                 type: boolean
                 example: false
+
               error:
                 type: string
                 example: InternalServerError
+
               message:
                 type: string
                 example: Something went wrong while creating the account.

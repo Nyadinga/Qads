@@ -1,53 +1,80 @@
 openapi: 3.0.3
+
 info:
-  title: Qads API
+  title: QADS API
   version: 2.0.0
   description: |
     QADS API documentation.
+
     This API supports:
     - User authentication
+    - User profile and account management
     - Advertiser operations
     - Promoter operations
     - Campaign management
     - Wallet and withdrawals
-    - Click tracking
+    - Click tracking and fraud monitoring
     - Admin moderation and platform management
     - Reporting and analytics
-    - Referrals operations
-
+    - Referral operations
 servers:
-  - url: http://localhost:3000
-    description: local development server
-
+  - url: http://127.0.0.1:4010
+    description: Local mock server
 tags:
   - name: Authentication
-    description: Endpoints for user registration, login, password reset, and token management
+    description: Endpoints for user registration, login, OTP verification, password reset, and token-based authentication
+
   - name: Users
-    description: Endpoints for user profile and account management
+    description: Endpoints for user profile, preferences, and account management
+
   - name: Campaigns
     description: Endpoints for campaign creation, update, approval, and lifecycle management
+
   - name: Promoter
     description: Endpoints for promoters to browse campaigns, generate links, and track earnings
+
   - name: Wallet
-    description: Endpoints for wallet balance, earnings, and withdrawals
+    description: Endpoints for wallet balance, earnings, transactions, and withdrawals
+
   - name: Click Tracking
     description: Endpoints for click recording, validation, and fraud analysis
+
   - name: Admin
-    description: Endpoints for platform administration, approvals, fraud review, and moderation
+    description: Endpoints for platform administration, approvals, moderation, and fraud review
+
   - name: Reports
     description: Endpoints for reporting, analytics, and performance insights
+
   - name: Referrals
-    description: Endpoints for managing the referral structure 
+    description: Endpoints for referral management and referral rewards tracking
 
-paths: 
+paths:
   /auth/register:
-    $ref: './paths/auth/register.yaml'
+    $ref: './paths/auth/register/register.yaml'
 
-# ADDED THIS SECTION BELOW
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
+  /auth/register/verify-otp:
+    $ref: './paths/auth/register/register-verify-otp.yaml'
 
+  /auth/register/resend-otp:
+    $ref: './paths/auth/register/register-resend-otp.yaml'
+
+  /auth/login:
+    $ref: './paths/auth/login/login.yaml'
+
+  /auth/login/verify-otp:
+    $ref: './paths/auth/login/login-verify-otp.yaml'
+
+  /auth/login/resend-otp:
+    $ref: './paths/auth/login/login-resend-otp.yaml'
+
+  /auth/forgot-password:
+    $ref: './paths/auth/forgot-password.yaml'
+
+  /auth/reset-password:
+    $ref: './paths/auth/reset-password.yaml'
+
+  /auth/logout:
+    $ref: './paths/auth/logout.yaml'
+  
+  /auth/refresh-token:
+    $ref: './paths/auth/refresh-token.yaml'

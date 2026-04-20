@@ -14,6 +14,10 @@ const findUserByPhone = async (phone) => {
   });
 };
 
+const findUserById = async (id) => {
+  return await User.findByPk(id);
+};
+
 const createUser = async (
   {
     firstName,
@@ -66,6 +70,15 @@ const createVerificationSession = async (
 
 const findVerificationSessionById = async (id) => {
   return await AuthVerificationSession.findByPk(id);
+};
+
+const cancelVerificationSession = async (session, transaction) => {
+  return await session.update(
+    {
+      status: "cancelled",
+    },
+    transaction ? { transaction } : undefined
+  );
 };
 
 const markVerificationSessionExpired = async (session, transaction) => {
@@ -121,9 +134,11 @@ const activateUser = async (userId, transaction) => {
 module.exports = {
   findUserByEmail,
   findUserByPhone,
+  findUserById,
   createUser,
   createVerificationSession,
   findVerificationSessionById,
+  cancelVerificationSession,
   markVerificationSessionExpired,
   incrementVerificationAttempts,
   markVerificationSessionVerified,

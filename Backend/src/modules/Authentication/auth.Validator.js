@@ -60,6 +60,16 @@ const verifyOtpValidationRules = [
     .withMessage("OTP code must contain only digits"),
 ];
 
+const resendOtpValidationRules = [
+  body("verificationSessionId")
+    .trim()
+    .notEmpty()
+    .withMessage("Verification session ID is required")
+    .bail()
+    .isUUID()
+    .withMessage("Verification session ID must be a valid UUID"),
+];
+
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
 
@@ -79,8 +89,10 @@ const handleValidationErrors = (req, res, next) => {
 
 const validateUser = [...registerValidationRules, handleValidationErrors];
 const validateVerifyOtp = [...verifyOtpValidationRules, handleValidationErrors];
+const validateResendOtp = [...resendOtpValidationRules, handleValidationErrors];
 
 module.exports = {
   validateUser,
   validateVerifyOtp,
+  validateResendOtp,
 };

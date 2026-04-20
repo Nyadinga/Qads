@@ -187,7 +187,112 @@ const verifyRegisterOtp = async ({ verificationSessionId, otpCode }) => {
   }
 };
 
+const resendRegisterOtp = async ({ verificationSessionId }) => {
+  const oldSession = await authRepository.findVerificationSessionById(
+    verificationSessionId
+  );
+
+  if (!oldSession) {
+    const error = new Error("Verification session not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (oldSession.purpose !== "register") {
+    const error = new Error("Invalid verification session purpose.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const user = await authRepository.findUserById(oldSession.user_id);
+
+  if (!user) {
+    const error = new Error("User not found for this verification session.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (user.is_verified || user.status === "active") {
+    const error = new Error("This account is already verified.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (oldSession.status === "verified") {
+    const error = new Error("This verification session has already been used.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const newSessionId = crypto.randomUUID();
+  const expiresAt = new Date(
+    Date.now() + Number(process.env.OTP_EXPIRES_MINUTES || 5) * 60 * 1000
+  );
+
+  let transaction;
+
+  try {
+    transaction = await sequelize.transaction();
+
+    if (oldSession.status === "pending") {
+      await authRepository.cancelVerificationSession(oldSession, transaction);
+    }
+
+    let deliveryResult;
+    let responseMessage;
+
+    try {
+      deliveryResult = await sendWhatsAppOtp({
+        phone: user.phone,
+        otpCode,
+      });
+      responseMessage = "A new OTP has been sent to your WhatsApp number.";
+    } catch (whatsappError) {
+      deliveryResult = await sendEmailOtp({
+        email: user.email,
+        otpCode,
+      });
+      responseMessage =
+        "WhatsApp verification is currently unavailable. A new OTP has been sent to your email.";
+    }
+
+    const newSession = await authRepository.createVerificationSession(
+      {
+        id: newSessionId,
+        userId: user.id,
+        purpose: "register",
+        otpCode,
+        deliveryChannel: deliveryResult.channel,
+        targetValue: deliveryResult.targetValue,
+        expiresAt,
+      },
+      transaction
+    );
+
+    await transaction.commit();
+
+    return {
+      message: responseMessage,
+      verificationSessionId: newSession.id,
+      deliveryChannel: newSession.delivery_channel,
+      expiresAt: newSession.expires_at,
+    };
+  } catch (error) {
+    if (transaction) {
+      await transaction.rollback();
+    }
+
+    if (!error.statusCode) {
+      error.statusCode = 500;
+    }
+
+    throw error;
+  }
+};
+
 module.exports = {
   register,
   verifyRegisterOtp,
+  resendRegisterOtp,
 };

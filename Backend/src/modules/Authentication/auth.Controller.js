@@ -46,7 +46,30 @@ const verifyRegisterOtp = async (req, res, next) => {
   }
 };
 
+const resendRegisterOtp = async (req, res, next) => {
+  try {
+    const { verificationSessionId } = req.body;
+
+    const result = await authService.resendRegisterOtp({
+      verificationSessionId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: {
+        verificationSessionId: result.verificationSessionId,
+        deliveryChannel: result.deliveryChannel,
+        expiresAt: result.expiresAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   verifyRegisterOtp,
+  resendRegisterOtp,
 };

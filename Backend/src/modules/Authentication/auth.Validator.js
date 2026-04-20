@@ -1,21 +1,9 @@
 const { body, validationResult } = require("express-validator");
 
 const registerValidationRules = [
-  body("firstName")
-    .trim()
-    .notEmpty()
-    .withMessage("First name is required"),
-
-  body("lastName")
-    .trim()
-    .notEmpty()
-    .withMessage("Last name is required"),
-
-  body("username")
-    .trim()
-    .notEmpty()
-    .withMessage("Username is required"),
-
+  body("firstName").trim().notEmpty().withMessage("First name is required"),
+  body("lastName").trim().notEmpty().withMessage("Last name is required"),
+  body("username").trim().notEmpty().withMessage("Username is required"),
   body("email")
     .trim()
     .notEmpty()
@@ -24,15 +12,10 @@ const registerValidationRules = [
     .isEmail()
     .withMessage("Email must be a valid format")
     .normalizeEmail(),
-
   body("phone")
     .trim()
     .notEmpty()
-    .withMessage("Phone number is required")
-    .bail()
-    .isMobilePhone("any")
-    .withMessage("Phone number must be a valid phone number"),
-
+    .withMessage("Phone number is required"),
   body("password")
     .notEmpty()
     .withMessage("Password is required")
@@ -45,7 +28,6 @@ const registerValidationRules = [
     .withMessage("Password must contain at least one lowercase letter")
     .matches(/\d/)
     .withMessage("Password must contain at least one number"),
-
   body("confirmPassword")
     .notEmpty()
     .withMessage("Confirm password is required")
@@ -56,6 +38,26 @@ const registerValidationRules = [
       }
       return true;
     }),
+];
+
+const verifyOtpValidationRules = [
+  body("verificationSessionId")
+    .trim()
+    .notEmpty()
+    .withMessage("Verification session ID is required")
+    .bail()
+    .isUUID()
+    .withMessage("Verification session ID must be a valid UUID"),
+
+  body("otpCode")
+    .trim()
+    .notEmpty()
+    .withMessage("OTP code is required")
+    .bail()
+    .isLength({ min: 6, max: 6 })
+    .withMessage("OTP code must be 6 digits")
+    .matches(/^\d{6}$/)
+    .withMessage("OTP code must contain only digits"),
 ];
 
 const handleValidationErrors = (req, res, next) => {
@@ -76,5 +78,9 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 const validateUser = [...registerValidationRules, handleValidationErrors];
+const validateVerifyOtp = [...verifyOtpValidationRules, handleValidationErrors];
 
-module.exports = { validateUser };
+module.exports = {
+  validateUser,
+  validateVerifyOtp,
+};

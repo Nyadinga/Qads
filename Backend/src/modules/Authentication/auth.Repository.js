@@ -64,9 +64,68 @@ const createVerificationSession = async (
   );
 };
 
+const findVerificationSessionById = async (id) => {
+  return await AuthVerificationSession.findByPk(id);
+};
+
+const markVerificationSessionExpired = async (session, transaction) => {
+  return await session.update(
+    { status: "expired" },
+    transaction ? { transaction } : undefined
+  );
+};
+
+const incrementVerificationAttempts = async (session, transaction) => {
+  const nextAttempts = session.attempts + 1;
+  const nextStatus =
+    nextAttempts >= session.max_attempts ? "cancelled" : session.status;
+
+  await session.update(
+    {
+      attempts: nextAttempts,
+      status: nextStatus,
+    },
+    transaction ? { transaction } : undefined
+  );
+
+  return {
+    attempts: nextAttempts,
+    status: nextStatus,
+  };
+};
+
+const markVerificationSessionVerified = async (session, transaction) => {
+  return await session.update(
+    {
+      status: "verified",
+      verified_at: new Date(),
+    },
+    transaction ? { transaction } : undefined
+  );
+};
+
+const activateUser = async (userId, transaction) => {
+  return await User.update(
+    {
+      status: "active",
+      is_verified: true,
+      verified_at: new Date(),
+    },
+    {
+      where: { id: userId },
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+};
+
 module.exports = {
   findUserByEmail,
   findUserByPhone,
   createUser,
   createVerificationSession,
+  findVerificationSessionById,
+  markVerificationSessionExpired,
+  incrementVerificationAttempts,
+  markVerificationSessionVerified,
+  activateUser,
 };

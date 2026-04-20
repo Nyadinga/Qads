@@ -20,10 +20,33 @@ const registerUser = async (req, res, next) => {
         user: result.user,
         verificationSessionId: result.verificationSessionId,
         deliveryChannel: result.deliveryChannel,
-        expiresAt: result.expiresAt,}, });
+        expiresAt: result.expiresAt,
+      },
+    });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { registerUser };
+const verifyRegisterOtp = async (req, res, next) => {
+  try {
+    const { verificationSessionId, otpCode } = req.body;
+
+    const result = await authService.verifyRegisterOtp({
+      verificationSessionId,
+      otpCode,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  registerUser,
+  verifyRegisterOtp,
+};

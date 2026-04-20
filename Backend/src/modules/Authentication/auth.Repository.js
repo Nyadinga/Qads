@@ -14,42 +14,54 @@ const findUserByPhone = async (phone) => {
   });
 };
 
-const createUser = async ({
-  firstName,
-  lastName,
-  username,
-  email,
-  phone,
-  passwordHash,
-}) => {
-  return await User.create({
-    first_name: firstName,
-    last_name: lastName,
+const createUser = async (
+  {
+    firstName,
+    lastName,
     username,
     email,
     phone,
-    password_hash: passwordHash,
-  });
+    passwordHash,
+  },
+  transaction
+) => {
+  return await User.create(
+    {
+      first_name: firstName,
+      last_name: lastName,
+      username,
+      email,
+      phone,
+      password_hash: passwordHash,
+    },
+    transaction ? { transaction } : undefined
+  );
 };
 
-const createVerificationSession = async ({
-  id,
-  userId,
-  purpose,
-  otpCode,
-  deliveryChannel,
-  targetValue,
-  expiresAt,
-}) => {
-  return await AuthVerificationSession.create({
+const createVerificationSession = async (
+  {
     id,
-    user_id: userId,
+    userId,
     purpose,
-    otp_code: otpCode,
-    delivery_channel: deliveryChannel,
-    target_value: targetValue,
-    expires_at: expiresAt,
-  });
+    otpCode,
+    deliveryChannel,
+    targetValue,
+    expiresAt,
+  },
+  transaction
+) => {
+  return await AuthVerificationSession.create(
+    {
+      id,
+      user_id: userId,
+      purpose,
+      otp_code: otpCode,
+      delivery_channel: deliveryChannel,
+      target_value: targetValue,
+      expires_at: expiresAt,
+    },
+    transaction ? { transaction } : undefined
+  );
 };
 
 module.exports = {

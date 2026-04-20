@@ -1,10 +1,10 @@
-const authService = require("./auth.Service");
+const authService = require("./auth.service");
 
 const registerUser = async (req, res, next) => {
   try {
     const { firstName, lastName, username, email, phone, password } = req.body;
 
-    const newUser = await authService.register({
+    const result = await authService.register({
       firstName,
       lastName,
       username,
@@ -15,9 +15,12 @@ const registerUser = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      message: "Account created successfully",
-      data: newUser,
-    });
+      message: result.message,
+      data: {
+        user: result.user,
+        verificationSessionId: result.verificationSessionId,
+        deliveryChannel: result.deliveryChannel,
+        expiresAt: result.expiresAt,}, });
   } catch (error) {
     next(error);
   }

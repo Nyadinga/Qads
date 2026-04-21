@@ -291,8 +291,162 @@ const resendRegisterOtp = async ({ verificationSessionId }) => {
   }
 };
 
+
+const login = async ({ identifier, password }) => {
+  const user = await authRepository.findUserByIdentifier(identifier);
+
+  if (!user) {
+    const error = new Error("Invalid credentials.");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+  if (!isPasswordValid) {
+    const error = new Error("Invalid credentials.");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  if (user.status === "suspended") {
+    const error = new Error("This account has been suspended.");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (!user.is_verified || user.status !== "active") {
+    const error = new Error("This account is not verified yet.");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const verificationSessionId = crypto.randomUUID();
+  const expiresAt = new Date(
+    Date.now() + Number(process.env.OTP_EXPIRES_MINUTES || 5) * 60 * 1000
+  );
+
+  let deliveryResult;
+  let responseMessage;
+
+  try {
+    deliveryResult = await sendWhatsAppOtp({
+      phone: user.phone,
+      otpCode,
+    });
+    responseMessage = "OTP sent to your WhatsApp number.";
+  } catch (whatsappError) {
+    deliveryResult = await sendEmailOtp({
+      email: user.email,
+      otpCode,
+    });
+    responseMessage =
+      "WhatsApp verification is currently unavailable. Your OTP has been sent to your email.";
+  }
+
+  const session = await authRepository.createVerificationSession({
+    id: verificationSessionId,
+    userId: user.id,
+    purpose: "login",
+    otpCode,
+    deliveryChannel: deliveryResult.channel,
+    targetValue: deliveryResult.targetValue,
+    expiresAt,
+  });
+
+  return {
+    message: responseMessage,
+    verificationSessionId: session.id,
+    deliveryChannel: session.delivery_channel,
+    expiresAt: session.expires_at,
+  };
+};
+
+const verifyLoginOtp = async ({ verificationSessionId, otpCode }) => {
+  const session = await authRepository.findVerificationSessionById(
+    verificationSessionId
+  );
+
+  if (!session) {
+    const error = new Error("Verification session not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (session.purpose !== "login") {
+    const error = new Error("Invalid verification session purpose.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (session.status !== "pending") {
+    const error = new Error("This verification session is no longer pending.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (new Date(session.expires_at).getTime() < Date.now()) {
+    await authRepository.markVerificationSessionExpired(session);
+
+    const error = new Error("OTP code has expired.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (session.otp_code !== otpCode) {
+    const result = await authRepository.incrementVerificationAttempts(session);
+
+    const remainingAttempts = Math.max(
+      session.max_attempts - result.attempts,
+      0
+    );
+
+    const error =
+      result.status === "cancelled"
+        ? new Error(
+            "Too many invalid attempts. This verification session has been cancelled."
+          )
+        : new Error("Invalid OTP code.");
+
+    error.statusCode = 400;
+    error.details = {
+      remainingAttempts,
+    };
+
+    throw error;
+  }
+
+  await authRepository.markVerificationSessionVerified(session);
+
+  const user = await authRepository.findUserById(session.user_id);
+
+  if (!user) {
+    const error = new Error("User not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return {
+    message: "Login verified successfully.",
+    user: {
+      id: user.id,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      status: user.status,
+      isVerified: user.is_verified,
+    },
+    // TODO: issue access token and refresh token here
+  };
+};
+
 module.exports = {
   register,
   verifyRegisterOtp,
   resendRegisterOtp,
+  login,
+  verifyLoginOtp,
 };

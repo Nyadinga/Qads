@@ -1,4 +1,5 @@
 const { User, AuthVerificationSession } = require("./models");
+const { Op } = require("sequelize");
 
 const findUserByEmail = async (email) => {
   return await User.findOne({
@@ -41,7 +42,13 @@ const createUser = async (
     transaction ? { transaction } : undefined
   );
 };
-
+const findUserByIdentifier = async (identifier) => {
+  return await User.findOne({
+    where: {
+      [Op.or]: [{ email: identifier }, { phone: identifier }],
+    },
+  });
+};
 const createVerificationSession = async (
   {
     id,
@@ -134,6 +141,7 @@ const activateUser = async (userId, transaction) => {
 module.exports = {
   findUserByEmail,
   findUserByPhone,
+  findUserByIdentifier,
   findUserById,
   createUser,
   createVerificationSession,

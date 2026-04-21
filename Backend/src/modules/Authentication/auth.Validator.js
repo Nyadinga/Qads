@@ -40,6 +40,17 @@ const registerValidationRules = [
     }),
 ];
 
+const loginValidationRules = [
+  body("identifier")
+    .trim()
+    .notEmpty()
+    .withMessage("Email or phone is required"),
+
+  body("password")
+    .notEmpty()
+    .withMessage("Password is required"),
+];
+
 const verifyOtpValidationRules = [
   body("verificationSessionId")
     .trim()
@@ -90,9 +101,11 @@ const handleValidationErrors = (req, res, next) => {
 const validateUser = [...registerValidationRules, handleValidationErrors];
 const validateVerifyOtp = [...verifyOtpValidationRules, handleValidationErrors];
 const validateResendOtp = [...resendOtpValidationRules, handleValidationErrors];
+const validateLogin = [...loginValidationRules, handleValidationErrors];
 
 module.exports = {
   validateUser,
+  validateLogin,
   validateVerifyOtp,
   validateResendOtp,
 };

@@ -68,8 +68,54 @@ const resendRegisterOtp = async (req, res, next) => {
   }
 };
 
+const loginUser = async (req, res, next) => {
+  try {
+    const { identifier, password } = req.body;
+
+    const result = await authService.login({
+      identifier,
+      password,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: {
+        verificationSessionId: result.verificationSessionId,
+        deliveryChannel: result.deliveryChannel,
+        expiresAt: result.expiresAt,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const verifyLoginOtp = async (req, res, next) => {
+  try {
+    const { verificationSessionId, otpCode } = req.body;
+
+    const result = await authService.verifyLoginOtp({
+      verificationSessionId,
+      otpCode,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: result.message,
+      data: {
+        user: result.user,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   registerUser,
   verifyRegisterOtp,
   resendRegisterOtp,
+  loginUser,
+  verifyLoginOtp,
 };

@@ -1,4 +1,4 @@
-const { User, AuthVerificationSession } = require("./models");
+const { User, AuthVerificationSession,UserSession } = require("./models");
 const { Op } = require("sequelize");
 
 const findUserByEmail = async (email) => {
@@ -138,6 +138,73 @@ const activateUser = async (userId, transaction) => {
   );
 };
 
+const createUserSession = async (payload, transaction) => {
+  return await UserSession.create(
+    payload,
+    transaction ? { transaction } : undefined
+  );
+};
+
+const updateUserLastLogin = async (userId, ipAddress, transaction) => {
+  return await User.update(
+    {
+      last_login_at: new Date(),
+      last_login_ip: ipAddress,
+    },
+    {
+      where: { id: userId },
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+};
+
+//logout logic 
+const findActiveUserSessionById = async (sessionId) => {
+  return await UserSession.findOne({
+    where: {
+      id: sessionId,
+      is_active: true,
+    },
+  });
+};
+
+const revokeUserSession = async (session, transaction) => {
+  return await session.update(
+    {
+      is_active: false,
+      revoked_at: new Date(),
+    },
+    transaction ? { transaction } : undefined
+  );
+};
+///password repository logic 
+const updateUserPassword = async (userId, passwordHash, transaction) => {
+  return await User.update(
+    {
+      password_hash: passwordHash,
+    },
+    {
+      where: { id: userId },
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+};
+
+const revokeAllUserSessionsForUser = async (userId, transaction) => {
+  return await UserSession.update(
+    {
+      is_active: false,
+      revoked_at: new Date(),
+    },
+    {
+      where: {
+        user_id: userId,
+        is_active: true,
+      },
+      ...(transaction ? { transaction } : {}),
+    }
+  );
+};
 module.exports = {
   findUserByEmail,
   findUserByPhone,
@@ -151,4 +218,10 @@ module.exports = {
   incrementVerificationAttempts,
   markVerificationSessionVerified,
   activateUser,
+  createUserSession,
+  updateUserLastLogin,
+  findActiveUserSessionById,
+  revokeUserSession,
+  updateUserPassword,
+  revokeAllUserSessionsForUser,
 };

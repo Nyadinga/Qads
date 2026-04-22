@@ -3,7 +3,9 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const authRoutes = require("./modules/Authentication/auth.Routes");
+const userRoutes = require("./modules/User/user.Route");
 const errorMiddleware = require("./middlewares/error.Middleware");
+const { swaggerUi, specs } = require('./utils/swaggerConfig');
 
 const app = express();
 
@@ -18,7 +20,9 @@ app.use(cors(corsOptions));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use("/auth", authRoutes);
+app.use("/user", userRoutes);
 app.use(errorMiddleware);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 module.exports = app;
 

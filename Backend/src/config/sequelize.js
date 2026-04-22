@@ -1,5 +1,7 @@
+// 1. Change { sequelize } to { Sequelize } (Capital S)
 const { Sequelize } = require("sequelize");
 
+// 2. This is now fine because "sequelize" is different from "Sequelize"
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,

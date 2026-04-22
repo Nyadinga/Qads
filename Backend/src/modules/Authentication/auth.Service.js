@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const authRepository = require("./auth.repository");
-const { Sequelize } = require("../../config/sequelize");
+const { sequelize } = require("../../config/sequelize");
 const { sendWhatsAppOtp, sendEmailOtp } = require("./otp.delivery");
 const {
   generateAccessToken,
@@ -154,8 +154,8 @@ const verifyRegisterOtp = async ({ verificationSessionId, otpCode }) => {
     const error =
       result.status === "cancelled"
         ? new Error(
-            "Too many invalid attempts. This verification session has been cancelled."
-          )
+          "Too many invalid attempts. This verification session has been cancelled."
+        )
         : new Error("Invalid OTP code.");
 
     error.statusCode = 400;
@@ -410,8 +410,8 @@ const verifyLoginOtp = async ({ verificationSessionId, otpCode, meta }) => {
     const error =
       result.status === "cancelled"
         ? new Error(
-            "Too many invalid attempts. This verification session has been cancelled."
-          )
+          "Too many invalid attempts. This verification session has been cancelled."
+        )
         : new Error("Invalid OTP code.");
 
     error.statusCode = 400;
@@ -446,11 +446,11 @@ const verifyLoginOtp = async ({ verificationSessionId, otpCode, meta }) => {
 
   const refreshSessionExpiresAt = new Date(
     Date.now() +
-      Number(process.env.REFRESH_SESSION_EXPIRES_DAYS || 7) *
-        24 *
-        60 *
-        60 *
-        1000
+    Number(process.env.REFRESH_SESSION_EXPIRES_DAYS || 7) *
+    24 *
+    60 *
+    60 *
+    1000
   );
 
   let transaction;
@@ -746,8 +746,8 @@ const resetPassword = async ({
     const error =
       result.status === "cancelled"
         ? new Error(
-            "Too many invalid attempts. This verification session has been cancelled."
-          )
+          "Too many invalid attempts. This verification session has been cancelled."
+        )
         : new Error("Invalid OTP code.");
 
     error.statusCode = 400;

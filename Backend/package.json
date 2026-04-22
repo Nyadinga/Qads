@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "The backend will be build using a Modular Architecture which include the following folders :\r src/\r │\r ├── config/            (store configuration settings for external systems)\r ├── middlewares/       (run logic before request reaches controller)\r ├── utils/             (reusable helper functions)\r ├── docs/              (store API documentation files)\r │\r ├── modules/\r │   │\r │   ├── auth/\r │   │   ├── controllers/    (handle auth HTTP request and response)\r │   │   ├── services/       (implement auth business logic)\r │   │   ├── repositories/   (communicate with DB for auth-related data)\r │   │   ├── models/         (define auth-related database structures)\r │   │   ├── routes/         (define auth API endpoints)\r │   │   └── validators/     (validate auth incoming request data)\r │   │\r │   ├── users/\r │   │   ├── controllers/\r │   │   ├── services/\r │   │   ├── repositories/\r │   │   ├── models/\r │   │   ├── routes/\r │   │   └── validators/\r │   │\r │   ├── campaigns/\r │   │   ├── controllers/\r │   │   ├── services/\r │   │   ├── repositories/\r │   │   ├── models/\r │   │   ├── routes/\r │   │   └── validators/\r │   │\r │   │\r │   ├── wallet/\r │   │   ├── controllers/\r │   │   ├── services/\r │   │   ├── repositories/\r │   │   ├── models/\r │   │   ├── routes/\r │   │   └── validators/\r │   │\r │   ├── withdrawals/\r │   │   ├── controllers/\r │   │   ├── services/\r │   │   ├── repositories/\r │   │   ├── models/\r │   │   ├── routes/\r │   │   └── validators/\r │   │\r │   ├── notifications/\r │   │   ├── controllers/\r │   │   ├── services/\r │   │   ├── repositories/\r │   │   ├── models/\r │   │   ├── routes/\r │   │   └── validators/\r │   │\r │   └── admin/\r │       ├── controllers/\r │       ├── services/\r │       ├── repositories/\r │       ├── models/\r │       ├── routes/\r │       └── validators/\r │\r ├── app.js             (creates express app and loads middlewares and routes)\r └── server.js          (starts server and listens on port)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -20,12 +20,13 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.10.1",
-    "mysql2": "^3.22.1",
+    "mysql2": "^3.22.2",
     "nodemailer": "^8.0.5",
     "sequelize": "^6.37.8"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
     "sequelize-cli": "^6.6.5"
-  }
+  },
+  "type": "commonjs"
 }

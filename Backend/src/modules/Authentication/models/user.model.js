@@ -91,5 +91,6 @@ const User = sequelize.define(
     indexes: [{ fields: ["status"], name: "idx_users_status" }],
   }
 );
+console.log("Checking sequelize instance:", sequelize);
 
 module.exports = User;

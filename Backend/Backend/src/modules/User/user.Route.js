@@ -10,8 +10,6 @@ const {
   getUserProfile,
 } = require("./user.Controller");
 
-const { requireAuth } = require("../../middlewares/auth.Middleware");
-
 const router = express.Router();
 
 /**
@@ -52,7 +50,7 @@ const router = express.Router();
  *         description: Validation error
  */
 router.put(
-  "/profile",requireAuth,
+  "/profile",
   validateProfileUpdate,
   handleProfileValidationErrors,
   updateUserProfile
@@ -98,7 +96,7 @@ router.put(
  *         description: Unauthorized or invalid current password
  */
 router.put(
-  "/change-password",requireAuth,
+  "/change-password",
   validatePasswordUpdate,
   handleProfileValidationErrors,
   updatePassword
@@ -126,6 +124,6 @@ router.put(
  *       404:
  *         description: User not found
  */
-router.get("/get-profile/:id",requireAuth, getUserProfile);
+router.get("/get-profile/:id", getUserProfile);
 
 module.exports = router;

@@ -1,71 +1,66 @@
-const Campaign = require("./campaign.Model");
-const User = require("../../Authentication/models/user.Model");
-const CampaignMedia = require("./campaignMedia.Model");
-const CampaignLink = require("./campaignLink.Model");
+const Campaign = require("./campaign.model");
+const CampaignCategory = require("./campaignCategory.model");
+const CampaignMedia = require("./campaignMedia.model");
+const CampaignLink = require("./campaignLink.model");
+const User = require("../../Authentication/models/user.model");
+
+Campaign.belongsTo(CampaignCategory, {
+  foreignKey: "category_id",
+  as: "category",
+});
+
+CampaignCategory.hasMany(Campaign, {
+  foreignKey: "category_id",
+  as: "campaigns",
+});
+
+Campaign.hasMany(CampaignMedia, {
+  foreignKey: "campaign_id",
+  as: "media",
+  onDelete: "CASCADE",
+});
+
+CampaignMedia.belongsTo(Campaign, {
+  foreignKey: "campaign_id",
+  as: "campaign",
+});
+
+Campaign.hasMany(CampaignLink, {
+  foreignKey: "campaign_id",
+  as: "links",
+  onDelete: "CASCADE",
+});
+
+CampaignLink.belongsTo(Campaign, {
+  foreignKey: "campaign_id",
+  as: "campaign",
+});
 
 User.hasMany(Campaign, {
-    foreignKey: 'user_id',
-    as: 'campaigns'
-});
-
-
-Campaign.belongsTo(User, {
-    foreignKey: 'user_id',
-    as: 'owner'
+  foreignKey: "user_id",
+  as: "ownedCampaigns",
+  onDelete: "CASCADE",
 });
 
 Campaign.belongsTo(User, {
-     foreignKey: 'reviewed_by', 
-     as: 'reviewer'
+  foreignKey: "user_id",
+  as: "owner",
 });
 
-Campaign.hasMany(CampaignMedia, { 
-    foreignKey: "campaign_id", 
-    as: "media"
- });
-CampaignMedia.belongsTo(Campaign, { 
-    foreignKey: "campaign_id",
-    as: "campaign"
- });
-
-Campaign.hasMany(CampaignLink, { 
-  foreignKey: 'campaign_id', 
-  as: 'generated_links' 
+User.hasMany(CampaignLink, {
+  foreignKey: "promoter_id",
+  as: "promotedCampaignLinks",
+  onDelete: "CASCADE",
 });
 
-CampaignLink.belongsTo(Campaign, { 
-  foreignKey: 'campaign_id', 
-  as: 'campaign' 
+CampaignLink.belongsTo(User, {
+  foreignKey: "promoter_id",
+  as: "promoter",
 });
-
-User.hasMany(CampaignLink, { 
-  foreignKey: 'promoter_id', 
-  as: 'my_promoter_links' 
-});
-
-CampaignLink.belongsTo(User, { 
-  foreignKey: 'promoter_id', 
-  as: 'promoter' 
-});
-
-Campaign.belongsToMany(User, {
-  through: CampaignLink,
-  foreignKey: 'campaign_id',
-  otherKey: 'promoter_id',
-  as: 'promoters' 
-});
-
-User.belongsToMany(Campaign, {
-  through: CampaignLink,
-  foreignKey: 'promoter_id',
-  otherKey: 'campaign_id',
-  as: 'promoted_campaigns' 
-});
-
 
 module.exports = {
   Campaign,
-  User,
+  CampaignCategory,
   CampaignMedia,
-  CampaignLink
+  CampaignLink,
 };

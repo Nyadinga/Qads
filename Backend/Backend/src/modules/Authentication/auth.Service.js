@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const authRepository = require("./auth.repository");
-const { sequelize } = require("../../config/sequelize");
+const { Sequelize } = require("../../config/sequelize");
 const { sendWhatsAppOtp, sendEmailOtp } = require("./otp.delivery");
 const {
   generateAccessToken,

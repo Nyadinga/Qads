@@ -23,6 +23,7 @@ app.use(morgan("dev"));
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/campaign", campaignRoutes);
+app.use('/campaigns/media/upload',campaignRoutes);
 app.use(errorMiddleware);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 

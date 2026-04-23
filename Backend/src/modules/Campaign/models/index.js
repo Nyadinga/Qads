@@ -38,18 +38,18 @@ CampaignLink.belongsTo(Campaign, {
 
 User.hasMany(Campaign, {
   foreignKey: "user_id",
-  as: "ownedCampaigns",
+  as: "campaignsOwned",
   onDelete: "CASCADE",
 });
 
 Campaign.belongsTo(User, {
   foreignKey: "user_id",
-  as: "owner",
+  as: "campaignOwner",
 });
 
 User.hasMany(CampaignLink, {
   foreignKey: "promoter_id",
-  as: "promotedCampaignLinks",
+  as: "promoterCampaignLinks",
   onDelete: "CASCADE",
 });
 

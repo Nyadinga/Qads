@@ -15,7 +15,13 @@ const {
   uploadMultipleCampaignMediaToDrive,
 } = require("../services/googleDrive.service");
 
-const { getAdvertiserCampaigns, pauseCampaign } = require("./advertiser.service");
+
+const { 
+  getAdvertiserCampaigns, 
+  pauseCampaign 
+} = require("./advertiser.service");
+
+
 
 const uploadCampaignMediaHandler = async (req, res, next) => {
   try {
@@ -162,10 +168,7 @@ const pauseCampaignHandler = async (req, res, next) => {
     next(error);
   }
 };
-const {
-  getAdvertiserCampaignDetail,
-  updateAdvertiserCampaign,
-} = require("./advertiser.service");
+
 
 const getAdvertiserCampaignDetailHandler = async (req, res, next) => {
   try {
@@ -186,25 +189,6 @@ const getAdvertiserCampaignDetailHandler = async (req, res, next) => {
   }
 };
 
-const updateAdvertiserCampaignHandler = async (req, res, next) => {
-  try {
-    const campaign = await updateAdvertiserCampaign({
-      campaign: req.campaign,
-      ownerId: req.auth.userId,
-      payload: req.body,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Campaign updated and submitted for review successfully.",
-      data: {
-        campaign,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 
 
@@ -215,6 +199,5 @@ module.exports = {
   uploadCampaignMediaHandler,
   getAdvertiserCampaignsHandler,
   pauseCampaignHandler,
-    getAdvertiserCampaignDetailHandler,
-  updateAdvertiserCampaignHandler,
+  getAdvertiserCampaignDetailHandler,
 };

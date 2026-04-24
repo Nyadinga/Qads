@@ -9,42 +9,49 @@ const {
 } = require("./advertiser.validator");
 
 const {
+  validateSaveDraftCampaign,
+} = require("./advertiserDraft.validator");
+
+const {
   previewCampaignPricing,
   createCampaignHandler,
   uploadCampaignMediaHandler,
   getAdvertiserCampaignsHandler,
   pauseCampaignHandler,
   updateAdvertiserCampaignHandler,
-  getAdvertiserCampaignDetailHandler
+  getAdvertiserCampaignDetailHandler,
 } = require("./advertiser.controller");
+
+const {
+  updateDraftCampaignHandler,
+  saveNewDraftCampaignHandler,
+} = require("./advertiserDraft.controller");
 
 const {
   requireCampaignOwner,
   requireCampaignStatus,
 } = require("../campaign.policies");
 
-
 const { requireAuth } = require("../../../middlewares/auth.Middleware");
 
 
 
 router.post(
-  "/pricing",
+  "/campaigns/pricing",
   requireAuth,
-  validatePreviewCampaignPricing, 
+  validatePreviewCampaignPricing,
   previewCampaignPricing
 );
 
-
 router.post(
-  "/create",requireAuth,
+  "/campaigns/create",
+  requireAuth,
   validateCreateCampaign,
   createCampaignHandler
 );
 
-
 router.post(
-  "/upload",
+  "/campaigns/upload",
   requireAuth,
   (req, res, next) => {
     uploadCampaignMedia(req, res, (err) => {
@@ -64,14 +71,6 @@ router.get(
   getAdvertiserCampaignsHandler
 );
 
-router.post(
-  "/:id/pause",
-  requireAuth,
-  requireCampaignOwner,
-  requireCampaignStatus("active"),
-  pauseCampaignHandler
-);
-
 router.get(
   "/campaigns/:id",
   requireAuth,
@@ -84,7 +83,29 @@ router.patch(
   requireAuth,
   requireCampaignOwner,
   validateUpdateAdvertiserCampaign,
-  updateAdvertiserCampaignHandler
+);
+
+router.post(
+  "/campaigns/:id/pause",
+  requireAuth,
+  requireCampaignOwner,
+  requireCampaignStatus("active"),
+  pauseCampaignHandler
+);
+
+router.post(
+  "/campaigns/draft",
+  requireAuth,
+  validateSaveDraftCampaign,
+  saveNewDraftCampaignHandler
+);
+
+router.patch(
+  "/campaigns/:id/draft",
+  requireAuth,
+  requireCampaignOwner,
+  validateSaveDraftCampaign,
+  updateDraftCampaignHandler
 );
 
 module.exports = router;

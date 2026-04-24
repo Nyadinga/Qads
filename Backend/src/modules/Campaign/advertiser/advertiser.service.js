@@ -125,21 +125,7 @@ const pauseCampaign = async ({ campaign }) => {
 };
 
 
-const buildInternalDestinationValue = ({ destination, destinationSourceId }) => {
-  if (destination === "qads_store") {
-    return `/stores/${destinationSourceId}`;
-  }
 
-  if (destination === "qads_product") {
-    return `/products/${destinationSourceId}`;
-  }
-
-  return null;
-};
-
-const normalizePhoneForWhatsapp = (phone) => {
-  return String(phone || "").replace(/[^\d]/g, "");
-};
 
 const resolveCampaignDestination = ({
   destination,

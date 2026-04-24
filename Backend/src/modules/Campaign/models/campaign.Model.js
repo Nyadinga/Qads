@@ -17,12 +17,12 @@ const Campaign = sequelize.define(
 
     category_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
 
     title: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
 
     description: {
@@ -32,24 +32,24 @@ const Campaign = sequelize.define(
 
     country_code: {
       type: DataTypes.STRING(2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: "CM",
     },
 
     currency_code: {
       type: DataTypes.STRING(3),
-      allowNull: false,
+      allowNull: true,
       defaultValue: "XAF",
     },
 
     product_name: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: true,
     },
 
     unit_price_range: {
       type: DataTypes.STRING(100),
-      allowNull: false,
+      allowNull: true,
     },
 
     destination: {
@@ -59,7 +59,7 @@ const Campaign = sequelize.define(
         "qads_store",
         "qads_product"
       ),
-      allowNull: false,
+      allowNull: true,
     },
 
     destination_source_id: {
@@ -69,39 +69,39 @@ const Campaign = sequelize.define(
 
     destination_value: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: true,
     },
 
     allocated_budget: {
       type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
 
     budget_spent: {
       type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
 
     min_cpc: {
       type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
+      allowNull: true,
     },
 
     advertiser_cpc: {
       type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
+      allowNull: true,
     },
 
     effective_cpc: {
       type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
+      allowNull: true,
     },
 
     estimated_validated_click_capacity: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
 
@@ -113,19 +113,19 @@ const Campaign = sequelize.define(
 
     base_platform_percentage: {
       type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 30,
     },
 
     extra_platform_percentage: {
       type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
     },
 
     final_platform_percentage: {
       type: DataTypes.DECIMAL(5, 2),
-      allowNull: false,
+      allowNull: true,
       defaultValue: 30,
     },
 
@@ -149,7 +149,7 @@ const Campaign = sequelize.define(
         "rejected",
         "completed"
       ),
-      allowNull: false,
+      allowNull: true,
       defaultValue: "draft",
     },
 
@@ -201,13 +201,13 @@ const Campaign = sequelize.define(
 
     created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
       defaultValue: DataTypes.NOW,
     },
 
     updated_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
       defaultValue: DataTypes.NOW,
     },
   },

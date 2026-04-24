@@ -288,6 +288,22 @@ const updateCampaign = async (campaign, payload, transaction) => {
   );
 };
 
+const replaceCampaignMedia = async (campaignId, mediaRows, transaction) => {
+  await CampaignMedia.destroy({
+    where: { campaign_id: campaignId },
+    ...(transaction ? { transaction } : {}),
+  });
+
+  if (!mediaRows?.length) {
+    return [];
+  }
+
+  return await CampaignMedia.bulkCreate(
+    mediaRows,
+    transaction ? { transaction } : undefined
+  );
+};
+
 module.exports = {
   findCampaignCategoryById,
   findCampaignCategoryByName,
@@ -305,4 +321,5 @@ module.exports = {
   pauseCampaign,
   findCampaignDetailByOwnerId,
   updateCampaign,
+  replaceCampaignMedia,
 };

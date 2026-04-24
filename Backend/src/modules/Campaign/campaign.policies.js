@@ -1,4 +1,4 @@
-const campaignRepository = require("./advertiser/advertiser.repository");
+const campaignRepository = require("./campaign.repository");
 
 const getCampaignIdFromRequest = (req) => {
   return req.params.id || req.params.campaignId || req.body.campaignId || null;
@@ -141,6 +141,7 @@ const requireAdmin = (req, res, next) => {
     next(error);
   }
 };
+
 
 module.exports = {
   requireAuthenticatedUser,

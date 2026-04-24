@@ -45,6 +45,11 @@ const User = sequelize.define(
       allowNull: false,
       defaultValue: false,
     },
+    is_admin: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     verified_at: {
       type: DataTypes.DATE,
       allowNull: true,

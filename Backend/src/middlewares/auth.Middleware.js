@@ -23,11 +23,31 @@ const requireAuth = (req, res, next) => {
       userId: payload.sub,
       sessionId: payload.sessionId,
       type: payload.type,
+      isAdmin: payload.isAdmin === true,
     };
-
     next();
   } catch (error) {
     error.statusCode = error.statusCode || 401;
+    next(error);
+  }
+};
+
+const requireAdmin = (req, res, next) => {
+  try {
+    if (!req.auth?.userId) {
+      const error = new Error("Unauthorized request.");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    if (req.auth.isAdmin !== true) {
+      const error = new Error("Admin access required.");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    next();
+  } catch (error) {
     next(error);
   }
 };

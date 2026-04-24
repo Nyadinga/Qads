@@ -432,15 +432,17 @@ const verifyLoginOtp = async ({ verificationSessionId, otpCode, meta }) => {
 
   const sessionId = crypto.randomUUID();
 
-  const accessToken = generateAccessToken({
-    userId: user.id,
-    sessionId,
-  });
+const accessToken = generateAccessToken({
+  userId: user.id,
+  sessionId,
+  isAdmin: user.is_admin,
+});
 
-  const refreshToken = generateRefreshToken({
-    userId: user.id,
-    sessionId,
-  });
+const refreshToken = generateRefreshToken({
+  userId: user.id,
+  sessionId,
+  isAdmin: user.is_admin,
+});
 
   const refreshTokenHash = hashToken(refreshToken);
 

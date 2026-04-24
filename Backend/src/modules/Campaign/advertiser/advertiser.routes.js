@@ -5,27 +5,28 @@ const { uploadCampaignMedia } = require("./campaign.upload");
 const {
   validateCreateCampaign,
   validatePreviewCampaignPricing,
+  validateUpdateAdvertiserCampaign,
 } = require("./advertiser.validator");
 
 const {
   previewCampaignPricing,
   createCampaignHandler,
   uploadCampaignMediaHandler,
+  getAdvertiserCampaignsHandler,
+  pauseCampaignHandler,
+  updateAdvertiserCampaignHandler,
+  getAdvertiserCampaignDetailHandler
 } = require("./advertiser.controller");
 
-
+const {
+  requireCampaignOwner,
+  requireCampaignStatus,
+} = require("../campaign.policies");
 
 
 const { requireAuth } = require("../../../middlewares/auth.Middleware");
 
 
-
-
-
-console.log("DEBUGGING ROUTE HANDLERS:");
-console.log("1. requireAuth is:", typeof requireAuth);
-console.log("2. validateRules is:", typeof validatePreviewCampaignPricing);
-console.log("3. controllerFunction is:", typeof previewCampaignPricing);
 
 router.post(
   "/pricing",
@@ -57,5 +58,33 @@ router.post(
   uploadCampaignMediaHandler
 );
 
+router.get(
+  "/campaigns",
+  requireAuth,
+  getAdvertiserCampaignsHandler
+);
+
+router.post(
+  "/:id/pause",
+  requireAuth,
+  requireCampaignOwner,
+  requireCampaignStatus("active"),
+  pauseCampaignHandler
+);
+
+router.get(
+  "/campaigns/:id",
+  requireAuth,
+  requireCampaignOwner,
+  getAdvertiserCampaignDetailHandler
+);
+
+router.patch(
+  "/campaigns/:id",
+  requireAuth,
+  requireCampaignOwner,
+  validateUpdateAdvertiserCampaign,
+  updateAdvertiserCampaignHandler
+);
 
 module.exports = router;

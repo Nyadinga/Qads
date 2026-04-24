@@ -15,6 +15,8 @@ const {
   uploadMultipleCampaignMediaToDrive,
 } = require("../services/googleDrive.service");
 
+const { getAdvertiserCampaigns, pauseCampaign } = require("./advertiser.service");
+
 const uploadCampaignMediaHandler = async (req, res, next) => {
   try {
     const files = req.files || [];
@@ -38,6 +40,26 @@ const uploadCampaignMediaHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+const getAdvertiserCampaignsHandler = async (req, res, next) => {
+  try {
+    const campaigns = await getAdvertiserCampaigns({
+      ownerId: req.auth.userId,
+      status: req.query.status || null,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Advertiser campaigns fetched successfully.",
+      data: {
+        campaigns,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 
 const previewCampaignPricing = async (req, res, next) => {
@@ -118,8 +140,81 @@ const createCampaignHandler = async (req, res, next) => {
   }
 };
 
+const pauseCampaignHandler = async (req, res, next) => {
+  try {
+    const campaign = await pauseCampaign({
+      campaign: req.campaign,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Campaign paused successfully.",
+      data: {
+        campaign: {
+          id: campaign.id,
+          title: campaign.title,
+          status: campaign.status,
+          pausedAt: campaign.paused_at,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const {
+  getAdvertiserCampaignDetail,
+  updateAdvertiserCampaign,
+} = require("./advertiser.service");
+
+const getAdvertiserCampaignDetailHandler = async (req, res, next) => {
+  try {
+    const campaign = await getAdvertiserCampaignDetail({
+      campaignId: req.params.id,
+      ownerId: req.auth.userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Advertiser campaign details fetched successfully.",
+      data: {
+        campaign,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateAdvertiserCampaignHandler = async (req, res, next) => {
+  try {
+    const campaign = await updateAdvertiserCampaign({
+      campaign: req.campaign,
+      ownerId: req.auth.userId,
+      payload: req.body,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Campaign updated and submitted for review successfully.",
+      data: {
+        campaign,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
 module.exports = {
   previewCampaignPricing,
   createCampaignHandler,
   uploadCampaignMediaHandler,
+  getAdvertiserCampaignsHandler,
+  pauseCampaignHandler,
+    getAdvertiserCampaignDetailHandler,
+  updateAdvertiserCampaignHandler,
 };

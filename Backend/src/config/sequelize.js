@@ -1,6 +1,11 @@
 // 1. Change { sequelize } to { Sequelize } (Capital S)
 const { Sequelize } = require("sequelize");
-
+console.log("DB Config Check:", {
+  name: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT
+});
 // 2. This is now fine because "sequelize" is different from "Sequelize"
 const sequelize = new Sequelize(
   process.env.DB_NAME,

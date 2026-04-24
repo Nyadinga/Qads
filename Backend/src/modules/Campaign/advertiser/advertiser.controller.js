@@ -16,9 +16,12 @@ const {
 } = require("../services/googleDrive.service");
 
 
-const { 
-  getAdvertiserCampaigns, 
-  pauseCampaign 
+const {
+  getAdvertiserCampaigns,
+  getAdvertiserCampaignDetail,
+  pauseCampaign,
+  resumeCampaign,
+  updateAdvertiserCampaign,
 } = require("./advertiser.service");
 
 
@@ -189,6 +192,49 @@ const getAdvertiserCampaignDetailHandler = async (req, res, next) => {
   }
 };
 
+const resumeCampaignHandler = async (req, res, next) => {
+  try {
+    const campaign = await resumeCampaign({
+      campaign: req.campaign,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Campaign resumed successfully.",
+      data: {
+        campaign: {
+          id: campaign.id,
+          title: campaign.title,
+          status: campaign.status,
+          pausedAt: campaign.paused_at,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateAdvertiserCampaignHandler = async (req, res, next) => {
+  try {
+    const campaign = await updateAdvertiserCampaign({
+      campaignId: req.params.id,
+      ownerId: req.auth.userId,
+      payload: req.body,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Campaign updated and submitted for review successfully.",
+      data: {
+        campaign,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 
 
@@ -200,4 +246,6 @@ module.exports = {
   getAdvertiserCampaignsHandler,
   pauseCampaignHandler,
   getAdvertiserCampaignDetailHandler,
+  resumeCampaignHandler,
+  updateAdvertiserCampaignHandler
 };

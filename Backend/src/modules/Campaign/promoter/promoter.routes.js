@@ -7,15 +7,26 @@ const {
 
 const { requireAuth } = require("../../../middlewares/auth.Middleware");
 
-console.log("promoter requireAuth:", typeof requireAuth);
-console.log("promoter getActiveCampaignsHandler:", typeof getActiveCampaignsHandler);
-
+/**
+ * @openapi
+ * /campaign/promoter/activecampaigns:
+ *   get:
+ *     tags:
+ *       - Campaign - Promoter
+ *     summary: Get active campaigns
+ *     description: Returns campaigns currently available for promotion.
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Active campaigns fetched successfully
+ *       401:
+ *         description: Unauthorized
+ */
 router.get(
   "/activecampaigns",
   requireAuth,
   getActiveCampaignsHandler
 );
-
-console.log("INSIDE promoter.routes.js export type:", typeof router);
 
 module.exports = router;

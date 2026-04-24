@@ -76,6 +76,8 @@ const { requireAuth } = require("../../middlewares/auth.Middleware");
  *         description: Registration successful, OTP sent
  *       400:
  *         description: Validation error
+ *       409:
+ *         description: Email or phone already taken
  */
 router.post("/register", validateUser, registerUser);
 
@@ -94,21 +96,23 @@ router.post("/register", validateUser, registerUser);
  *           schema:
  *             type: object
  *             required:
- *               - email
- *               - otp
+ *               - verificationSessionId
+ *               - otpCode
  *             properties:
- *               email:
+ *               verificationSessionId:
  *                 type: string
- *                 format: email
- *                 example: user@example.com
- *               otp:
+ *                 format: uuid
+ *                 example: 6fc0fbe0-95c5-45dd-a8d3-1d4ea6359f13
+ *               otpCode:
  *                 type: string
  *                 example: "123456"
  *     responses:
  *       200:
  *         description: OTP verified successfully
  *       400:
- *         description: Invalid or expired OTP
+ *         description: Invalid, expired, or cancelled OTP session
+ *       404:
+ *         description: Verification session not found
  */
 router.post("/register/verify-otp", validateVerifyOtp, verifyRegisterOtp);
 
@@ -127,17 +131,19 @@ router.post("/register/verify-otp", validateVerifyOtp, verifyRegisterOtp);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - verificationSessionId
  *             properties:
- *               email:
+ *               verificationSessionId:
  *                 type: string
- *                 format: email
- *                 example: user@example.com
+ *                 format: uuid
+ *                 example: 6fc0fbe0-95c5-45dd-a8d3-1d4ea6359f13
  *     responses:
  *       200:
  *         description: OTP resent successfully
  *       400:
  *         description: Unable to resend OTP
+ *       404:
+ *         description: Verification session not found
  */
 router.post("/register/resend-otp", validateResendOtp, resendRegisterOtp);
 
@@ -148,7 +154,7 @@ router.post("/register/resend-otp", validateResendOtp, resendRegisterOtp);
  *     tags:
  *       - Authentication
  *     summary: Login user
- *     description: Authenticates a user and sends an OTP if required.
+ *     description: Authenticates a user with email or phone and sends an OTP.
  *     requestBody:
  *       required: true
  *       content:
@@ -156,12 +162,11 @@ router.post("/register/resend-otp", validateResendOtp, resendRegisterOtp);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - identifier
  *               - password
  *             properties:
- *               email:
+ *               identifier:
  *                 type: string
- *                 format: email
  *                 example: user@example.com
  *               password:
  *                 type: string
@@ -169,11 +174,11 @@ router.post("/register/resend-otp", validateResendOtp, resendRegisterOtp);
  *                 example: StrongPass123!
  *     responses:
  *       200:
- *         description: Login successful, OTP sent if required
- *       400:
- *         description: Validation error
+ *         description: Login successful, OTP sent
  *       401:
  *         description: Invalid credentials
+ *       403:
+ *         description: Account suspended or not verified
  */
 router.post("/login", validateLogin, loginUser);
 
@@ -184,7 +189,7 @@ router.post("/login", validateLogin, loginUser);
  *     tags:
  *       - Authentication
  *     summary: Verify login OTP
- *     description: Verifies the OTP sent during login.
+ *     description: Verifies the OTP sent during login and returns session tokens.
  *     requestBody:
  *       required: true
  *       content:
@@ -192,14 +197,14 @@ router.post("/login", validateLogin, loginUser);
  *           schema:
  *             type: object
  *             required:
- *               - email
- *               - otp
+ *               - verificationSessionId
+ *               - otpCode
  *             properties:
- *               email:
+ *               verificationSessionId:
  *                 type: string
- *                 format: email
- *                 example: user@example.com
- *               otp:
+ *                 format: uuid
+ *                 example: 6fc0fbe0-95c5-45dd-a8d3-1d4ea6359f13
+ *               otpCode:
  *                 type: string
  *                 example: "123456"
  *     responses:
@@ -207,6 +212,8 @@ router.post("/login", validateLogin, loginUser);
  *         description: Login OTP verified successfully
  *       400:
  *         description: Invalid or expired OTP
+ *       404:
+ *         description: Verification session not found
  */
 router.post("/login/verify-otp", validateVerifyOtp, verifyLoginOtp);
 
@@ -225,17 +232,19 @@ router.post("/login/verify-otp", validateVerifyOtp, verifyLoginOtp);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - verificationSessionId
  *             properties:
- *               email:
+ *               verificationSessionId:
  *                 type: string
- *                 format: email
- *                 example: user@example.com
+ *                 format: uuid
+ *                 example: 6fc0fbe0-95c5-45dd-a8d3-1d4ea6359f13
  *     responses:
  *       200:
  *         description: Login OTP resent successfully
  *       400:
  *         description: Unable to resend OTP
+ *       404:
+ *         description: Verification session not found
  */
 router.post("/login/resend-otp", validateResendOtp, resendLoginOtp);
 
@@ -246,7 +255,7 @@ router.post("/login/resend-otp", validateResendOtp, resendLoginOtp);
  *     tags:
  *       - Authentication
  *     summary: Logout user
- *     description: Logs out the authenticated user.
+ *     description: Logs out the authenticated user by revoking the current session.
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -254,6 +263,8 @@ router.post("/login/resend-otp", validateResendOtp, resendLoginOtp);
  *         description: Successfully logged out
  *       401:
  *         description: Unauthorized
+ *       404:
+ *         description: Session not found or already logged out
  */
 router.post("/logout", requireAuth, logoutUser);
 
@@ -264,7 +275,7 @@ router.post("/logout", requireAuth, logoutUser);
  *     tags:
  *       - Authentication
  *     summary: Forgot password
- *     description: Sends a password reset OTP or reset instructions.
+ *     description: Starts password reset by sending an OTP to the user email or phone flow.
  *     requestBody:
  *       required: true
  *       content:
@@ -272,17 +283,18 @@ router.post("/logout", requireAuth, logoutUser);
  *           schema:
  *             type: object
  *             required:
- *               - email
+ *               - identifier
  *             properties:
- *               email:
+ *               identifier:
  *                 type: string
- *                 format: email
  *                 example: user@example.com
  *     responses:
  *       200:
- *         description: Password reset instructions sent
- *       400:
- *         description: Validation error
+ *         description: Password reset OTP sent
+ *       403:
+ *         description: Account suspended
+ *       404:
+ *         description: No account found
  */
 router.post("/forgot-password", validateForgotPassword, forgotPasswordUser);
 
@@ -293,7 +305,7 @@ router.post("/forgot-password", validateForgotPassword, forgotPasswordUser);
  *     tags:
  *       - Authentication
  *     summary: Reset password
- *     description: Resets the user password using a valid OTP or reset token.
+ *     description: Resets the user password using a valid password reset verification session and OTP.
  *     requestBody:
  *       required: true
  *       content:
@@ -301,15 +313,15 @@ router.post("/forgot-password", validateForgotPassword, forgotPasswordUser);
  *           schema:
  *             type: object
  *             required:
- *               - email
- *               - otp
+ *               - verificationSessionId
+ *               - otpCode
  *               - newPassword
  *             properties:
- *               email:
+ *               verificationSessionId:
  *                 type: string
- *                 format: email
- *                 example: user@example.com
- *               otp:
+ *                 format: uuid
+ *                 example: 6fc0fbe0-95c5-45dd-a8d3-1d4ea6359f13
+ *               otpCode:
  *                 type: string
  *                 example: "123456"
  *               newPassword:
@@ -321,6 +333,8 @@ router.post("/forgot-password", validateForgotPassword, forgotPasswordUser);
  *         description: Password reset successful
  *       400:
  *         description: Invalid input or expired OTP
+ *       404:
+ *         description: Verification session or user not found
  */
 router.post("/reset-password", validateResetPassword, resetPasswordUser);
 

@@ -21,7 +21,9 @@ const router = express.Router();
  *     tags:
  *       - User
  *     summary: Update user profile
- *     description: Updates the profile information of a user.
+ *     description: Updates the authenticated user's profile information.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -50,9 +52,12 @@ const router = express.Router();
  *         description: Profile updated successfully
  *       400:
  *         description: Validation error
+ *       401:
+ *         description: Unauthorized
  */
 router.put(
-  "/profile",requireAuth,
+  "/profile",
+  requireAuth,
   validateProfileUpdate,
   handleProfileValidationErrors,
   updateUserProfile
@@ -65,7 +70,9 @@ router.put(
  *     tags:
  *       - User
  *     summary: Change user password
- *     description: Updates the password of a user account.
+ *     description: Updates the authenticated user's password.
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -98,7 +105,8 @@ router.put(
  *         description: Unauthorized or invalid current password
  */
 router.put(
-  "/change-password",requireAuth,
+  "/change-password",
+  requireAuth,
   validatePasswordUpdate,
   handleProfileValidationErrors,
   updatePassword
@@ -112,20 +120,24 @@ router.put(
  *       - User
  *     summary: Get user profile
  *     description: Retrieves a user profile by ID.
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
  *         schema:
- *           type: string
+ *           type: integer
  *         description: The ID of the user
  *         example: 1
  *     responses:
  *       200:
  *         description: User profile retrieved successfully
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: User not found
  */
-router.get("/get-profile/:id",requireAuth, getUserProfile);
+router.get("/get-profile/:id", requireAuth, getUserProfile);
 
 module.exports = router;

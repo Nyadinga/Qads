@@ -1,14 +1,15 @@
 const campaignRepository = require("../campaign.repository");
-
 const { sequelize } = require("../../../config/sequelize");
 
 const {
   resolveCampaignCategory,
 } = require("../services/campaignCategory.service");
+
 const {
   resolveCampaignCpc,
   getCurrencyForCountry,
 } = require("../services/campaignCpc.service");
+
 const {
   resolvePlatformCommission,
 } = require("../services/campaignCommission.service");
@@ -22,6 +23,22 @@ const ALLOWED_STATUS_FILTERS = [
   "rejected",
   "completed",
 ];
+
+const buildInternalDestinationValue = ({ destination, destinationSourceId }) => {
+  if (destination === "qads_store") {
+    return `/stores/${destinationSourceId}`;
+  }
+
+  if (destination === "qads_product") {
+    return `/products/${destinationSourceId}`;
+  }
+
+  return null;
+};
+
+const normalizePhoneForWhatsapp = (phone) => {
+  return String(phone || "").replace(/[^\d]/g, "");
+};
 
 const getAdvertiserCampaigns = async ({ ownerId, status }) => {
   let normalizedStatus = null;
@@ -109,23 +126,13 @@ const pauseCampaign = async ({ campaign }) => {
     );
 
     await transaction.commit();
-
     return updatedCampaign;
   } catch (error) {
-    if (transaction) {
-      await transaction.rollback();
-    }
-
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
-
+    if (transaction) await transaction.rollback();
+    if (!error.statusCode) error.statusCode = 500;
     throw error;
   }
 };
-
-
-
 
 const resolveCampaignDestination = ({
   destination,
@@ -250,10 +257,23 @@ const getAdvertiserCampaignDetail = async ({ campaignId, ownerId }) => {
   return mapCampaignDetail(campaign);
 };
 
-const updateAdvertiserCampaign = async ({ campaign, ownerId, payload }) => {
+const updateAdvertiserCampaign = async ({ campaignId, ownerId, payload }) => {
   let transaction;
 
   try {
+    const campaign = await campaignRepository.findCampaignDetailByOwnerId(
+      campaignId,
+      ownerId
+    );
+
+    if (!campaign) {
+      const error = new Error(
+        "You are not allowed to edit this campaign or the campaign does not exist."
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
     transaction = await sequelize.transaction();
 
     const category = await resolveCampaignCategory({
@@ -314,10 +334,11 @@ const updateAdvertiserCampaign = async ({ campaign, ownerId, payload }) => {
         extra_platform_percentage: commission.extraPlatformPercentage,
         final_platform_percentage: commission.finalPlatformPercentage,
         start_date:
-          payload.startDate !== undefined ? payload.startDate : campaign.start_date,
+          payload.startDate !== undefined
+            ? payload.startDate
+            : campaign.start_date,
         end_date:
           payload.endDate !== undefined ? payload.endDate : campaign.end_date,
-
         status: "pending_approval",
         submitted_at: new Date(),
         approved_at: null,
@@ -340,20 +361,36 @@ const updateAdvertiserCampaign = async ({ campaign, ownerId, payload }) => {
 
     return mapCampaignDetail(freshCampaign);
   } catch (error) {
-    if (transaction) {
-      await transaction.rollback();
-    }
+    if (transaction) await transaction.rollback();
+    if (!error.statusCode) error.statusCode = 500;
+    throw error;
+  }
+};
 
-    if (!error.statusCode) {
-      error.statusCode = 500;
-    }
+const resumeCampaign = async ({ campaign }) => {
+  let transaction;
 
+  try {
+    transaction = await sequelize.transaction();
+
+    const updatedCampaign = await campaignRepository.resumeCampaign(
+      campaign,
+      transaction
+    );
+
+    await transaction.commit();
+    return updatedCampaign;
+  } catch (error) {
+    if (transaction) await transaction.rollback();
+    if (!error.statusCode) error.statusCode = 500;
     throw error;
   }
 };
 
 module.exports = {
   getAdvertiserCampaigns,
+  getAdvertiserCampaignDetail,
+  updateAdvertiserCampaign,
   pauseCampaign,
-  updateAdvertiserCampaign
+  resumeCampaign,
 };

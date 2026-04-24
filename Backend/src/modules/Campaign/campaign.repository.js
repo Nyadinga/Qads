@@ -304,6 +304,17 @@ const replaceCampaignMedia = async (campaignId, mediaRows, transaction) => {
   );
 };
 
+const resumeCampaign = async (campaign, transaction) => {
+  return await campaign.update(
+    {
+      status: "active",
+      paused_at: null,
+      updated_at: new Date(),
+    },
+    transaction ? { transaction } : undefined
+  );
+};
+
 module.exports = {
   findCampaignCategoryById,
   findCampaignCategoryByName,

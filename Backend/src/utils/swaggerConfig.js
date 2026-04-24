@@ -25,8 +25,11 @@ const options = {
     },
   },
   apis: [
-    "./src/modules/Authentication/auth.Routes.js",
-    "./src/modules/User/user.Route.js",
+    "./src/modules/Authentication/*.js",
+    "./src/modules/User/*.js",
+    "./src/modules/Campaign/advertiser/*.js",
+    "./src/modules/Campaign/promoter/*.js",
+    "./src/modules/Campaign/admin/*.js",
   ],
 };
 

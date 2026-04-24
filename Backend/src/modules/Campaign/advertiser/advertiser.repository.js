@@ -94,6 +94,25 @@ const findActiveCampaignById = async (campaignId) => {
   });
 };
 
+const findCampaignDetailByOwnerId = async (campaignId, ownerId) => {
+  return await Campaign.findOne({
+    where: {
+      id: campaignId,
+      user_id: ownerId,
+    },
+    include: [
+      {
+        model: CampaignCategory,
+        as: "category",
+      },
+      {
+        model: CampaignMedia,
+        as: "media",
+      },
+    ],
+  });
+};
+
 module.exports = {
   findCampaignCategoryById,
   findCampaignCategoryByName,
@@ -103,4 +122,5 @@ module.exports = {
   findCampaignById,
   findCampaignByIdAndOwnerId,
   findActiveCampaignById,
+  findCampaignDetailByOwnerId
 };

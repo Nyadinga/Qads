@@ -2,11 +2,14 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+
 const authRoutes = require("./modules/Authentication/auth.Routes");
 const userRoutes = require("./modules/User/user.Route");
-const campaignRoutes = require("./modules/Campaign/campaign.routes")
+const advertiserRoutes = require("./modules/Campaign/advertiser/advertiser.routes");
+const promoterRoutes = require("./modules/Campaign/promoter/promoter.routes");
+
 const errorMiddleware = require("./middlewares/error.Middleware");
-const { swaggerUi, specs } = require('./utils/swaggerConfig');
+const { swaggerUi, specs } = require("./utils/swaggerConfig");
 
 const app = express();
 
@@ -16,16 +19,29 @@ const corsOptions = {
   origin: ["http://127.0.0.1:8080", "http://localhost:8080"],
 };
 
+// Debug route imports
+console.log("authRoutes:", typeof authRoutes);
+console.log("userRoutes:", typeof userRoutes);
+console.log("advertiserRoutes:", typeof advertiserRoutes);
+console.log("promoterRoutes:", typeof promoterRoutes);
+
+// Global middlewares
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(helmet());
 app.use(morgan("dev"));
+
+// Swagger docs
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+// Routes
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
-app.use("/campaign", campaignRoutes);
-app.use('/campaigns/media/upload',campaignRoutes);
+app.use("/campaign/advertiser", advertiserRoutes);
+app.use("/campaign/promoter", promoterRoutes);
+
+// Error handler must be last
 app.use(errorMiddleware);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 module.exports = app;
 

@@ -5,34 +5,45 @@ const { uploadCampaignMedia } = require("./campaign.upload");
 const {
   validateCreateCampaign,
   validatePreviewCampaignPricing,
-} = require("./campaign.validator");
-
-const {
-  uploadCampaignMediaHandler,
-} = require("./campaign.upload.controller");
+} = require("./advertiser.validator");
 
 const {
   previewCampaignPricing,
   createCampaignHandler,
-} = require("./campaign.controller");
+  uploadCampaignMediaHandler,
+} = require("./advertiser.controller");
 
-const { requireAuth } = require("../../middlewares/auth.Middleware");
+
+
+
+const { requireAuth } = require("../../../middlewares/auth.Middleware");
+
+
+
+
+
+console.log("DEBUGGING ROUTE HANDLERS:");
+console.log("1. requireAuth is:", typeof requireAuth);
+console.log("2. validateRules is:", typeof validatePreviewCampaignPricing);
+console.log("3. controllerFunction is:", typeof previewCampaignPricing);
 
 router.post(
-  "/campaigns/pricing/preview",
+  "/pricing",
   requireAuth,
-  validatePreviewCampaignPricing,
+  validatePreviewCampaignPricing, 
   previewCampaignPricing
 );
 
+
 router.post(
-  "/createcampaigns",requireAuth,
+  "/create",requireAuth,
   validateCreateCampaign,
   createCampaignHandler
 );
 
+
 router.post(
-  "/campaigns/media/upload",
+  "/upload",
   requireAuth,
   (req, res, next) => {
     uploadCampaignMedia(req, res, (err) => {
@@ -45,5 +56,6 @@ router.post(
   },
   uploadCampaignMediaHandler
 );
+
 
 module.exports = router;

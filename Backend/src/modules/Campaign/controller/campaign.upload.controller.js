@@ -1,6 +1,6 @@
 const {
   uploadMultipleCampaignMediaToDrive,
-} = require("./services/googleDrive.service");
+} = require("../services/googleDrive.service");
 
 const uploadCampaignMediaHandler = async (req, res, next) => {
   try {

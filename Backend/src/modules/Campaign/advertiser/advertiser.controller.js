@@ -1,15 +1,44 @@
 const {
   getCategoryPricingContext,
-} = require("./services/campaignCategory.service");
+} = require("../services/campaignCategory.service");
 const {
   resolveCampaignCpc,
-} = require("./services/campaignCpc.service");
+} = require("../services/campaignCpc.service");
 const {
   resolvePlatformCommission,
-} = require("./services/campaignCommission.service");
+} = require("../services/campaignCommission.service");
 const {
   createCampaign,
-} = require("./services/campaignCreation.service");
+} = require("../services/campaignCreation.service");
+
+const {
+  uploadMultipleCampaignMediaToDrive,
+} = require("../services/googleDrive.service");
+
+const uploadCampaignMediaHandler = async (req, res, next) => {
+  try {
+    const files = req.files || [];
+
+    if (!files.length) {
+      const error = new Error("At least one media file is required.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const mediaRefs = await uploadMultipleCampaignMediaToDrive(files);
+
+    return res.status(201).json({
+      success: true,
+      message: "Uploaded successfully.",
+      data: {
+        mediaRefs,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 const previewCampaignPricing = async (req, res, next) => {
   try {
@@ -53,6 +82,8 @@ const previewCampaignPricing = async (req, res, next) => {
   }
 };
 
+
+
 const createCampaignHandler = async (req, res, next) => {
   try {
     if (!req.auth?.userId) {
@@ -90,4 +121,5 @@ const createCampaignHandler = async (req, res, next) => {
 module.exports = {
   previewCampaignPricing,
   createCampaignHandler,
+  uploadCampaignMediaHandler,
 };
